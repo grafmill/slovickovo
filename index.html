@@ -1205,8 +1205,8 @@ function qzTestHTML(c, secs, group, size) {
     if (id === 'pic') inner = `<div class="qg">${s.items.map(it => { no++; keys.push([no, it.w.en]); return `<div class="qi"><b>${no}.</b>${pic(it.w)}<span class="qsk">${esc(it.w.sk)}</span><span class="qline"></span></div>`; }).join('')}</div>`;
     if (id === 'letters') inner = `<div class="qg">${s.items.map(it => { no++; keys.push([no, it.w.en]); return `<div class="qi"><b>${no}.</b>${pic(it.w)}<span class="qpw"><span class="qsk">${esc(it.w.sk)}</span><span class="qpat">${it.pat.map(ch => ch === null ? '_' : esc(ch)).join(' ')}</span></span></div>`; }).join('')}</div>`;
     if (id === 'sk2en' || id === 'en2sk') inner = `<div class="qg">${s.items.map(it => { no++; keys.push([no, id === 'sk2en' ? it.w.en : it.w.sk]); return `<div class="qi"><b>${no}.</b><span class="qword">${esc(id === 'sk2en' ? it.w.sk : it.w.en)}</span><span class="qline"></span></div>`; }).join('')}</div>`;
-    if (id === 'circle') inner = `<div class="qs">${s.items.map(it => { no++; keys.push([no, it.w.en]); return `<div><b>${no}.</b> ${sentHTML(it.w, '<span class="qbl"></span>')} <span class="qopts">${it.opts.map(o => esc(o.en)).join(' / ')}</span></div>`; }).join('')}</div>`;
-    if (id === 'bank') inner = `<div class="qbank">${s.bank.map(w => `<span>${esc(w.en)}</span>`).join('')}</div><div class="qs">${s.items.map(it => { no++; keys.push([no, it.w.en]); return `<div><b>${no}.</b> ${sentHTML(it.w, '<span class="qbl"></span>')}</div>`; }).join('')}</div>`;
+    if (id === 'circle') inner = `<div class="qs">${s.items.map(it => { no++; keys.push([no, it.w.en]); return `<div><b>${no}.</b> ${sentHTML(it.w, '<span class="qbl"></span>')} <span class="qopts">${it.opts.map(o => esc(o.en)).join(' / ')}</span>${it.w.sentSkGap ? `<span class="qtr">${esc(it.w.sentSkGap)}</span>` : ''}</div>`; }).join('')}</div>`;
+    if (id === 'bank') inner = `<div class="qbank">${s.bank.map(w => `<span>${esc(w.en)}</span>`).join('')}</div><div class="qs">${s.items.map(it => { no++; keys.push([no, it.w.en]); return `<div><b>${no}.</b> ${sentHTML(it.w, '<span class="qbl"></span>')}${it.w.sentSkGap ? `<span class="qtr">${esc(it.w.sentSkGap)}</span>` : ''}</div>`; }).join('')}</div>`;
     if (id === 'match') inner = `<div class="qm">${s.items.map((it, i) => { no++; keys.push([no, `${L[s.right.indexOf(it.w)]}) ${it.w.en}`]); return `<div class="l"><b>${no}.</b>${pic(it.w)}<i></i></div><div></div><div class="r"><i></i>${L[i]}) ${esc(s.right[i].en)}</div>`; }).join('')}</div>`;
     return `<div class="qsec"><p class="qinstr">${esc(s.t.instr)}</p>${inner}</div>`;
   }).join('');
@@ -1261,6 +1261,7 @@ const QZ_CSS = `
 .qline { flex: 1; border-bottom: .9pt solid #111; height: 1.6em; min-width: 12mm; }
 .qword { font-weight: 700; white-space: nowrap; }
 .qpw { display: flex; flex-direction: column; line-height: 1.15; }
+.qtr { display: block; font-size: .86em; color: #555; padding-left: 1.4em; line-height: 1.2; }
 .qsk { font-size: .85em; color: #444; white-space: nowrap; }
 .qpat { font-size: 1.25em; letter-spacing: .5mm; font-weight: 700; white-space: nowrap; }
 .qs { display: flex; flex-direction: column; gap: calc(2.2mm * var(--k)); }
