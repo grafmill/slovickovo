@@ -246,6 +246,16 @@ footer.foot button { background: none; border: none; color: var(--muted); text-d
 .dpad button { border: none; border-radius: 16px; background: var(--primary); color: var(--primary-ink); font-size: 1.6rem; cursor: pointer; user-select: none; -webkit-user-select: none; }
 .dpad [data-dir="up"] { grid-column: 2; grid-row: 1; } .dpad [data-dir="left"] { grid-column: 1; grid-row: 2; } .dpad [data-dir="down"] { grid-column: 2; grid-row: 2; } .dpad [data-dir="right"] { grid-column: 3; grid-row: 2; }
 
+.qzlessons, .qztypes { display: flex; flex-direction: column; gap: 6px; }
+.qzrow { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.qzrow b { min-width: 2ch; text-align: center; font-size: 1.3rem; font-family: var(--font-display); }
+.stp { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--primary); background: var(--surface); color: var(--primary); font-size: 1.5rem; font-weight: 800; cursor: pointer; }
+.qztotal { font-weight: 700; } .qztotal.bad { color: var(--bad); }
+.qzvar { display: flex; flex-direction: column; gap: 6px; padding-left: 12px; } .qzvar[hidden] { display: none; }
+.qzview { overflow: hidden; width: 100%; }
+.qzscale { transform-origin: top left; display: flex; flex-direction: column; gap: 12px; width: max-content; }
+.qzscale .qsheet { box-shadow: 0 1px 8px rgba(0,0,0,.25); }
+
 .sh-sk { font-size: 10.5pt; color: #555; }
 .sh-keylist.wide { columns: 2; font-size: 12pt; line-height: 1.5; }
 .sh-keylist.wide div { margin-bottom: 1.5mm; }
@@ -628,8 +638,8 @@ const state = { view: 'home', lessonId: null, group: 'all', run: null };
 function render() {
   try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {}
   if (gameStop) { gameStop(); gameStop = null; }
-  if (!curProfile() && !['who', 'parents'].includes(state.view)) state.view = 'who';
-  ({ home, lesson, words, run: runView, result, parents, me, diploma, who, games, play })[state.view]();
+  if (!curProfile() && !['who', 'parents', 'teacher'].includes(state.view)) state.view = 'who';
+  ({ home, lesson, words, run: runView, result, parents, me, diploma, who, games, play, teacher })[state.view]();
   window.scrollTo(0, 0);
 }
 function go(view, extra = {}) { Object.assign(state, { view }, extra); render(); }
@@ -1095,6 +1105,196 @@ async function bounceGame(meta) {
   gameOverlay('<h3>Odrážaj loptičku</h3><p>Hore uvidíš slovenské slovo. Odraz loptičku do tehličky s anglickým slovom. Nepusť loptičku dole.</p>', 'Štart', start);
 }
 
+/* ---------------- sekcia pre učiteľa: generátor tlačených testov ----------------
+   Heslo sa overuje len v zariadení (PBKDF2). Nič sa nikam neposiela, nastavenia sa pamätajú v tomto prehliadači
+   zvlášť pre každý prístup (učiteľka / správca), takže prístupy nie sú prepojené. */
+const ROLES = {
+  ucitel: { name: 'Učiteľka', hash: 'e0e51cb3088335502ce738ec32a735edfc9dfac8bc0a5a085329639efbb975a7' },
+  spravca: { name: 'Správca', hash: '22e3fbc00df062e9f916ea2757166111893c05c25902cfb07fecc45570dc3f85' },
+};
+const QTYPES = [
+  { id: 'pic', title: 'Napíš slovo podľa obrázka', instr: 'Napíš slovo po anglicky.' },
+  { id: 'letters', title: 'Doplň písmenká', instr: 'Doplň chýbajúce písmenká.' },
+  { id: 'sk2en', title: 'Prelož do angličtiny', instr: 'Prelož do angličtiny.' },
+  { id: 'en2sk', title: 'Prelož do slovenčiny', instr: 'Prelož do slovenčiny.' },
+  { id: 'circle', title: 'Zakrúžkuj slovo do vety', instr: 'Zakrúžkuj slovo, ktoré patrí do vety.' },
+  { id: 'bank', title: 'Doplň slovo do vety z rámčeka', instr: 'Doplň do viet slová z rámčeka.' },
+  { id: 'match', title: 'Spoj slovo s obrázkom', instr: 'Spoj čiarou obrázok so slovom.' },
+];
+const QZ_MAX = 20;
+let teacherRole = null;
+try { teacherRole = sessionStorage.getItem('slovickovo:teacherRole'); } catch (e) {}
+async function checkTeacherPwd(pwd) {
+  const enc = new TextEncoder();
+  for (const [role, r] of Object.entries(ROLES)) {
+    try {
+      const key = await crypto.subtle.importKey('raw', enc.encode(pwd), 'PBKDF2', false, ['deriveBits']);
+      const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode('slovickovo-' + role), iterations: 150000 }, key, 256);
+      const hex = [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, '0')).join('');
+      if (hex === r.hash) return role;
+    } catch (e) { return null; }
+  }
+  return null;
+}
+const qzCfgKey = () => 'teacher:' + teacherRole + ':cfg';
+function qzCfg() {
+  const d = { lessons: unlockedIds(), counts: { pic: 4, letters: 4, sk2en: 0, en2sk: 0, circle: 4, bank: 0, match: 4 }, format: 'a5', variants: 'ab', title: 'Test z angličtiny', key: true };
+  const c = store.get(qzCfgKey(), null); return c ? Object.assign(d, c, { counts: Object.assign(d.counts, c.counts || {}) }) : d;
+}
+function teacher() {
+  if (!teacherRole) {
+    app.innerHTML = `${topbar('Pre učiteľa')}
+      <div class="card"><h3>Prihlásenie</h3><p class="muted">Táto časť je pre pani učiteľku. Je tu generátor tlačených testov.</p>
+        <label for="tpwd"><strong>Heslo</strong></label>
+        <input id="tpwd" type="password" class="answer-input" style="text-align:left;font-size:1.3rem" autocomplete="current-password">
+        <button class="big" id="tlogin">Prihlásiť</button></div>
+      <div class="note">Heslo sa overuje iba v tomto zariadení. Nič sa nikam neposiela.</div>`;
+    const go1 = async () => { const b = document.getElementById('tlogin'); b.disabled = true; b.textContent = 'Overujem…'; const role = await checkTeacherPwd(document.getElementById('tpwd').value.trim()); if (!role) { b.disabled = false; b.textContent = 'Prihlásiť'; return toast('Nesprávne heslo.'); } teacherRole = role; try { sessionStorage.setItem('slovickovo:teacherRole', role); } catch (e) {} teacher(); };
+    document.getElementById('tlogin').onclick = go1; document.getElementById('tpwd').addEventListener('keydown', e => { if (e.key === 'Enter') go1(); });
+    return;
+  }
+  const c = qzCfg(); const unl = unlockedIds();
+  app.innerHTML = `${topbar('Generátor testov')}
+    <div class="card"><div class="row" style="justify-content:space-between;align-items:center"><p><strong>${ROLES[teacherRole].name}</strong> · prihlásená</p><button class="chip" id="tlogout">Odhlásiť</button></div>
+      <label for="qtitle"><strong>Nadpis testu</strong></label><input id="qtitle" class="answer-input" style="text-align:left;font-size:1.15rem" maxlength="60" value="${esc(c.title)}">
+      <strong>Lekcie</strong>
+      <div class="qzlessons">${LESSONS.map(l => `<label class="toggle"><input type="checkbox" data-ql="${l.id}" ${c.lessons.includes(l.id) ? 'checked' : ''}> ${l.title}: ${esc(l.name)}${unl.includes(l.id) ? '' : ' <span class="muted">(deťom ešte zamknutá)</span>'}</label>`).join('')}</div></div>
+    <div class="card"><h3>Typy úloh a počet</h3><p class="muted">Úlohy sa vyberú náhodne zo slovíčok zvolených lekcií. Spolu najviac ${QZ_MAX} na jeden test.</p>
+      <div class="qztypes">${QTYPES.map(t => `<div class="qzrow"><span class="grow">${esc(t.title)}</span><button class="stp" data-qm="${t.id}" aria-label="Menej">−</button><b data-qn="${t.id}">${c.counts[t.id] || 0}</b><button class="stp" data-qp="${t.id}" aria-label="Viac">+</button></div>`).join('')}</div>
+      <p id="qtotal" class="qztotal"></p></div>
+    <div class="card"><h3>Tlač</h3>
+      <label class="toggle"><input type="radio" name="qfmt" value="a5" ${c.format === 'a5' ? 'checked' : ''}> 2 testy na jeden list A4 (každý A5, list sa rozstrihne)</label>
+      <label class="toggle"><input type="radio" name="qfmt" value="a4" ${c.format === 'a4' ? 'checked' : ''}> 1 test na celý list A4 (väčšie písmo)</label>
+      <div id="qvar" class="qzvar"><label class="toggle"><input type="radio" name="qvar" value="ab" ${c.variants === 'ab' ? 'checked' : ''}> Skupina A a B (iné úlohy, proti odpisovaniu)</label>
+      <label class="toggle"><input type="radio" name="qvar" value="same" ${c.variants === 'same' ? 'checked' : ''}> Rovnaký test dvakrát</label></div>
+      <label class="toggle"><input type="checkbox" id="qkey" ${c.key ? 'checked' : ''}> Pridať riešenie na samostatnú stranu</label>
+      <div class="row"><button class="big" id="qgen">Vygenerovať test</button></div></div>
+    <div id="qprev"></div>`;
+  const save = () => store.set(qzCfgKey(), c);
+  const total = () => QTYPES.reduce((s, t) => s + (c.counts[t.id] || 0), 0);
+  const upd = () => { const t = total(); const el = document.getElementById('qtotal'); el.textContent = `Spolu ${t} ${t === 1 ? 'úloha' : t > 1 && t < 5 ? 'úlohy' : 'úloh'} (najviac ${QZ_MAX})`; el.classList.toggle('bad', t > QZ_MAX || !t); document.getElementById('qgen').disabled = t > QZ_MAX || !t || !c.lessons.length; document.getElementById('qvar').hidden = c.format !== 'a5'; QTYPES.forEach(x => { app.querySelector(`[data-qn="${x.id}"]`).textContent = c.counts[x.id] || 0; }); save(); };
+  app.querySelectorAll('[data-qm]').forEach(b => b.onclick = () => { c.counts[b.dataset.qm] = Math.max(0, (c.counts[b.dataset.qm] || 0) - 1); upd(); });
+  app.querySelectorAll('[data-qp]').forEach(b => b.onclick = () => { if (total() >= QZ_MAX) return toast(`Najviac ${QZ_MAX} úloh na jeden test.`); c.counts[b.dataset.qp] = Math.min(10, (c.counts[b.dataset.qp] || 0) + 1); upd(); });
+  app.querySelectorAll('[data-ql]').forEach(b => b.onchange = () => { c.lessons = [...app.querySelectorAll('[data-ql]:checked')].map(x => +x.dataset.ql); upd(); });
+  app.querySelectorAll('[name="qfmt"]').forEach(b => b.onchange = () => { c.format = b.value; upd(); });
+  app.querySelectorAll('[name="qvar"]').forEach(b => b.onchange = () => { c.variants = b.value; save(); });
+  document.getElementById('qkey').onchange = (e) => { c.key = e.target.checked; save(); };
+  document.getElementById('qtitle').oninput = (e) => { c.title = e.target.value; save(); };
+  document.getElementById('tlogout').onclick = () => { teacherRole = null; try { sessionStorage.removeItem('slovickovo:teacherRole'); } catch (e) {} go('home'); };
+  document.getElementById('qgen').onclick = () => qzPreview(c, Math.floor(Math.random() * 1e9));
+  upd();
+}
+function qzBuild(c, seed) {
+  const r = rng(seed); const pool = c.lessons.flatMap(id => lessonWords(lessonById(id)));
+  const used = new Set();
+  const take = (n, ok = () => true) => { let cand = shuffle(pool.filter(w => !used.has(w.en) && ok(w)), r); if (cand.length < n) cand = cand.concat(shuffle(pool.filter(w => used.has(w.en) && ok(w)), r)); const out = cand.slice(0, n); out.forEach(w => used.add(w.en)); return out; };
+  return QTYPES.filter(t => c.counts[t.id] > 0).map(t => {
+    const n = c.counts[t.id];
+    const items = take(n, (t.id === 'circle' || t.id === 'bank') ? (w => w.sent) : undefined).map(w => ({ w }));
+    if (t.id === 'letters') items.forEach(it => { it.pat = hidePattern(it.w.en, r); });
+    if (t.id === 'circle') items.forEach(it => { it.opts = shuffle([it.w, ...others(it.w, pool, 2, r)], r); });
+    return { t, items, bank: t.id === 'bank' ? shuffle(items.map(x => x.w), r) : null, right: t.id === 'match' ? shuffle(items.map(x => x.w), r) : null };
+  });
+}
+function qzTestHTML(c, secs, group, size) {
+  let no = 0; const keys = []; const n = secs.reduce((s, x) => s + x.items.length, 0);
+  const pic = (w) => `<span class="qp">${svg(PICS[w.pic] || '')}</span>`;
+  const L = 'abcdefghij';
+  const body = secs.map(s => {
+    const id = s.t.id; let inner = '';
+    if (id === 'pic') inner = `<div class="qg">${s.items.map(it => { no++; keys.push([no, it.w.en]); return `<div class="qi"><b>${no}.</b>${pic(it.w)}<span class="qsk">${esc(it.w.sk)}</span><span class="qline"></span></div>`; }).join('')}</div>`;
+    if (id === 'letters') inner = `<div class="qg">${s.items.map(it => { no++; keys.push([no, it.w.en]); return `<div class="qi"><b>${no}.</b>${pic(it.w)}<span class="qpw"><span class="qsk">${esc(it.w.sk)}</span><span class="qpat">${it.pat.map(ch => ch === null ? '_' : esc(ch)).join(' ')}</span></span></div>`; }).join('')}</div>`;
+    if (id === 'sk2en' || id === 'en2sk') inner = `<div class="qg">${s.items.map(it => { no++; keys.push([no, id === 'sk2en' ? it.w.en : it.w.sk]); return `<div class="qi"><b>${no}.</b><span class="qword">${esc(id === 'sk2en' ? it.w.sk : it.w.en)}</span><span class="qline"></span></div>`; }).join('')}</div>`;
+    if (id === 'circle') inner = `<div class="qs">${s.items.map(it => { no++; keys.push([no, it.w.en]); return `<div><b>${no}.</b> ${sentHTML(it.w, '<span class="qbl"></span>')} <span class="qopts">${it.opts.map(o => esc(o.en)).join(' / ')}</span></div>`; }).join('')}</div>`;
+    if (id === 'bank') inner = `<div class="qbank">${s.bank.map(w => `<span>${esc(w.en)}</span>`).join('')}</div><div class="qs">${s.items.map(it => { no++; keys.push([no, it.w.en]); return `<div><b>${no}.</b> ${sentHTML(it.w, '<span class="qbl"></span>')}</div>`; }).join('')}</div>`;
+    if (id === 'match') inner = `<div class="qm">${s.items.map((it, i) => { no++; keys.push([no, `${L[s.right.indexOf(it.w)]}) ${it.w.en}`]); return `<div class="l"><b>${no}.</b>${pic(it.w)}<i></i></div><div></div><div class="r"><i></i>${L[i]}) ${esc(s.right[i].en)}</div>`; }).join('')}</div>`;
+    return `<div class="qsec"><p class="qinstr">${esc(s.t.instr)}</p>${inner}</div>`;
+  }).join('');
+  const lessons = c.lessons.length === 1 ? 'Lekcia ' + c.lessons[0] : 'Lekcie ' + c.lessons.join(', ');
+  const html = `<div class="qz ${size}"><div class="qhead"><b>${esc(c.title || 'Test z angličtiny')}</b><span>${lessons}${group ? ` · <span class="qgrp">${group}</span>` : ''}</span></div>
+    <div class="qname"><span>Meno: ______________________</span><span>Body: ____ / ${n}</span></div>${body}</div>`;
+  return { html, keys, n };
+}
+function qzSheets(c, seed) {
+  const a5 = c.format === 'a5';
+  const tA = qzTestHTML(c, qzBuild(c, seed), a5 && c.variants === 'ab' ? 'A' : '', a5 ? 'a5' : 'a4');
+  const tB = a5 ? (c.variants === 'ab' ? qzTestHTML(c, qzBuild(c, seed + 1), 'B', 'a5') : tA) : null;
+  const keyList = (t, label) => `<div class="qkey"><h4>${label}</h4>${t.keys.map(([n, a]) => `<div>${n}. <b>${esc(a)}</b></div>`).join('')}</div>`;
+  let sheets = a5 ? `<section class="qsheet land">${tA.html}<div class="qcut"></div>${tB.html}</section>` : `<section class="qsheet port">${tA.html}</section>`;
+  if (c.key) sheets += `<section class="qsheet ${a5 ? 'land' : 'port'} qkeys"><div class="qz ${a5 ? 'a5' : 'a4'}"><div class="qhead"><b>Riešenie: ${esc(c.title || 'Test z angličtiny')}</b></div>
+    <div class="qkeycols">${keyList(tA, a5 && c.variants === 'ab' ? 'Skupina A' : 'Riešenie')}${a5 && c.variants === 'ab' ? keyList(tB, 'Skupina B') : ''}</div></div></section>`;
+  return sheets;
+}
+function qzFit(root) { root.querySelectorAll('.qz').forEach(z => { let k = 1; z.style.setProperty('--k', k); while (z.scrollHeight > z.clientHeight + 1 && k > .55) { k -= .04; z.style.setProperty('--k', k.toFixed(2)); } }); }
+async function qzPreview(c, seed) {
+  const box = document.getElementById('qprev');
+  box.innerHTML = `<div class="card"><h3>Náhľad</h3><div class="row"><button class="big" id="qprint">${WEB ? 'Vytlačiť / uložiť PDF' : 'Stiahnuť na tlač'}</button><button class="big ghost" id="qagain">Iné náhodné úlohy</button></div>
+    <p class="muted">${WEB ? 'V okne tlače zvoľte tlačiareň alebo „Uložiť ako PDF“. Mierka 100 %, bez okrajov hlavičky.' : 'Stiahne sa súbor, ktorý otvoríte v prehliadači a vytlačíte (Ctrl + P).'} ${c.format === 'a5' ? 'List A4 sa tlačí na šírku a rozstrihne sa v strede.' : ''}</p>
+    <div class="qzview"><div class="qzscale" id="qzscale">${qzSheets(c, seed)}</div></div></div>`;
+  try { await document.fonts.ready; } catch (e) {}
+  const sc = document.getElementById('qzscale'); qzFit(sc);
+  const fitView = () => { const w = sc.parentElement.clientWidth; const s = Math.min(1, w / sc.scrollWidth); sc.style.transform = `scale(${s})`; sc.parentElement.style.height = sc.scrollHeight * s + 'px'; };
+  fitView();
+  document.getElementById('qagain').onclick = () => qzPreview(c, Math.floor(Math.random() * 1e9));
+  document.getElementById('qprint').onclick = () => qzPrint(c, sc.innerHTML);
+  box.scrollIntoView({ behavior: 'smooth' });
+}
+const QZ_CSS = `
+.qsheet { background: #fff; color: #111; overflow: hidden; break-after: page; page-break-after: always; display: flex; font-family: Andika, "Trebuchet MS", sans-serif; }
+.qsheet.land { width: 297mm; height: 210mm; }
+.qsheet.port { width: 210mm; height: 297mm; }
+.qcut { width: 0; border-left: .6pt dashed #999; margin: 6mm 0; }
+.qz { --k: 1; box-sizing: border-box; display: flex; flex-direction: column; gap: calc(2.6mm * var(--k)); overflow: hidden; font-size: calc(11.5pt * var(--k)); line-height: 1.3; }
+.qz.a5 { width: 148.5mm; height: 210mm; padding: 9mm 9mm 8mm; }
+.qz.a4 { width: 210mm; height: 297mm; padding: 13mm 15mm; font-size: calc(14pt * var(--k)); gap: calc(4mm * var(--k)); }
+.qhead { display: flex; justify-content: space-between; align-items: baseline; gap: 4mm; border-bottom: 1.2pt solid #111; padding-bottom: 1.5mm; }
+.qhead b { font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.45em; line-height: 1.1; }
+.qgrp { display: inline-block; border: 1.2pt solid #111; border-radius: 1.5mm; padding: 0 2mm; font-weight: 700; }
+.qname { display: flex; justify-content: space-between; gap: 4mm; font-size: .95em; }
+.qsec { display: flex; flex-direction: column; gap: calc(1.6mm * var(--k)); }
+.qinstr { margin: 0; font-weight: 700; }
+.qg { display: grid; grid-template-columns: 1fr 1fr; gap: calc(2.4mm * var(--k)) 5mm; }
+.qi { display: flex; align-items: center; gap: 2mm; min-width: 0; }
+.qp { width: calc(13mm * var(--k)); height: calc(13mm * var(--k)); flex: none; border: .6pt solid #bbb; border-radius: 1.5mm; }
+.qz.a4 .qp { width: calc(19mm * var(--k)); height: calc(19mm * var(--k)); }
+.qp svg { width: 100%; height: 100%; display: block; }
+.qline { flex: 1; border-bottom: .9pt solid #111; height: 1.6em; min-width: 12mm; }
+.qword { font-weight: 700; white-space: nowrap; }
+.qpw { display: flex; flex-direction: column; line-height: 1.15; }
+.qsk { font-size: .85em; color: #444; white-space: nowrap; }
+.qpat { font-size: 1.25em; letter-spacing: .5mm; font-weight: 700; white-space: nowrap; }
+.qs { display: flex; flex-direction: column; gap: calc(2.2mm * var(--k)); }
+.qbl { display: inline-block; width: 18mm; border-bottom: .9pt solid #111; }
+.qopts { white-space: nowrap; font-weight: 700; margin-left: 1mm; }
+.qopts::before { content: "( "; font-weight: 400; } .qopts::after { content: " )"; font-weight: 400; }
+.qbank { border: 1pt dashed #111; border-radius: 2mm; padding: 1.4mm 3mm; display: flex; flex-wrap: wrap; gap: 1mm 5mm; font-weight: 700; }
+.qm { display: grid; grid-template-columns: auto 1fr auto; align-items: center; row-gap: calc(1.6mm * var(--k)); column-gap: 3mm; }
+.qm .l, .qm .r { display: flex; align-items: center; gap: 2mm; }
+.qm .r { font-weight: 700; }
+.qm i { width: 2.2mm; height: 2.2mm; border-radius: 50%; background: #111; flex: none; }
+.qkeycols { display: flex; gap: 10mm; }
+.qkey { flex: 1; display: flex; flex-direction: column; gap: 1mm; }
+.qkey h4 { margin: 0 0 1mm; font-family: "Baloo 2", "Trebuchet MS", sans-serif; font-size: 1.2em; }
+.qkeys .qz { width: 100%; }
+`;
+(function () { const st = document.createElement('style'); st.textContent = QZ_CSS; document.head.appendChild(st); })();
+async function qzPrint(c, sheets) {
+  const pageCSS = `@page { size: A4 ${c.format === 'a5' ? 'landscape' : 'portrait'}; margin: 0; } html, body { margin: 0; padding: 0; background: #fff; }`;
+  if (WEB) {
+    let root = document.getElementById('printroot'); if (!root) { root = document.createElement('div'); root.id = 'printroot'; document.body.appendChild(root); }
+    root.innerHTML = `<style>${pageCSS} @media print { body > *:not(#printroot) { display: none !important; } #printroot { display: block !important; } } @media screen { #printroot { display: none; } }</style>${sheets}`;
+    setTimeout(() => window.print(), 50);
+    return;
+  }
+  const fonts = [...document.querySelectorAll('link[rel="stylesheet"]')].map(l => l.outerHTML).join('');
+  const doc = `<!doctype html><html lang="sk"><head><meta charset="utf-8"><title>${esc(c.title || 'Test')}</title>${fonts}<style>${QZ_CSS}${pageCSS} @media screen { body { background: #ccc; } .qsheet { margin: 10mm auto; box-shadow: 0 2px 12px rgba(0,0,0,.25); } .tip { font: 16px sans-serif; text-align: center; padding: 12px; } } @media print { .tip { display: none; } }</style></head>
+    <body><p class="tip">Vytlačte cez Ctrl + P (na Macu ⌘ + P). ${c.format === 'a5' ? 'Orientácia na šírku, ' : ''}mierka 100 %.</p>${sheets}<script>document.fonts.ready.then(function () { setTimeout(function () { window.print(); }, 300); });<\/script></body></html>`;
+  const dl = await downloadsP;
+  if (!dl) return toast('Sťahovanie tu nie je dostupné. Použite adresu grafmill.github.io/slovickovo.');
+  try { await dl.save({ filename: 'slovickovo-test.html', data: doc }); toast('Test je stiahnutý. Otvorte súbor a vytlačte ho.'); }
+  catch (err) { if (err && err.code === 'declined') return; toast('Test sa nepodarilo stiahnuť. Skúste to znova.'); }
+}
+
 /* --- spustenie cvičenia / testu --- */
 function buildItems(kind, pool, count) {
   const ws = shuffle(pool);
@@ -1333,6 +1533,10 @@ app.addEventListener('click', (e) => {
   if (t.dataset.ex) return startExercise(t.dataset.ex);
   if (t.dataset.test) return startTest(t.dataset.test);
 });
+/* skrytý vstup pre učiteľa a správcu: adresa končiaca #testy (v appke nie je nikde odkaz) */
+const secretEntry = () => { if (location.hash === '#testy') { state.view = 'teacher'; try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} return true; } return false; };
+secretEntry();
+window.addEventListener('hashchange', () => { if (secretEntry()) render(); });
 render();
 if (WEB) {
   fetch('lekcie.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(j => {
