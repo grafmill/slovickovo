@@ -1,0 +1,8 @@
+# Slovíčkovo
+AddType application/manifest+json .webmanifest
+AddType font/woff2 .woff2
+<IfModule mod_headers.c>
+  <FilesMatch "^(lekcie\.json|sw\.js|index\.html)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

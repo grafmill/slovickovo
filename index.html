@@ -1,0 +1,1413 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2763D6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Slovíčkovo">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="ikony/ikona-180.png">
+<link rel="icon" type="image/png" href="ikony/ikona-192.png">
+<title>Slovíčkovo</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+/* Layout: one centered column like an exercise book page; big tap targets; worksheets render as A4 sheets */
+:root {
+  --bg: #EAF2FB;
+  --surface: #FFFFFF;
+  --ink: #1C2840;
+  --muted: #56667F;
+  --line: #CFDCEB;
+  --primary: #2763D6;
+  --primary-ink: #FFFFFF;
+  --accent: #FFB81C;
+  --accent-soft: #FFF1CC;
+  --good: #23905A;
+  --good-soft: #DDF4E7;
+  --bad: #D33F35;
+  --bad-soft: #FDE3E0;
+  --pic: #FFFFFF;
+  --font-display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Andika", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111A2C; --surface: #1A2540; --ink: #EEF3FB; --muted: #A6B4CC; --line: #2E3C5C;
+    --primary: #6C9EFF; --primary-ink: #0E1628; --accent: #FFC94D; --accent-soft: #3A3420;
+    --good: #4CC27E; --good-soft: #173A2A; --bad: #FF7468; --bad-soft: #43201E; --pic: #F4F7FB;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111A2C; --surface: #1A2540; --ink: #EEF3FB; --muted: #A6B4CC; --line: #2E3C5C;
+  --primary: #6C9EFF; --primary-ink: #0E1628; --accent: #FFC94D; --accent-soft: #3A3420;
+  --good: #4CC27E; --good-soft: #173A2A; --bad: #FF7468; --bad-soft: #43201E; --pic: #F4F7FB;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 18px; line-height: 1.45; }
+#app { max-width: 760px; margin: 0 auto; padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.1; margin: 0; text-wrap: balance; }
+h1 { font-size: 2.4rem; font-weight: 800; }
+h2 { font-size: 1.7rem; font-weight: 800; }
+h3 { font-size: 1.25rem; font-weight: 600; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 4px solid var(--accent); outline-offset: 2px; }
+
+.topbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.topbar .grow { flex: 1; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand svg { width: 56px; height: 56px; flex: none; }
+.brand small { display: block; font-size: .95rem; color: var(--muted); font-family: var(--font-body); font-weight: 400; }
+.back { min-height: 52px; padding: 0 18px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface); cursor: pointer; font-weight: 700; }
+
+.card { background: var(--surface); border: 2px solid var(--line); border-radius: 22px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.muted { color: var(--muted); }
+
+.big { min-height: 68px; padding: 12px 22px; border-radius: 18px; border: none; background: var(--primary); color: var(--primary-ink); font-size: 1.3rem; font-weight: 700; cursor: pointer; font-family: var(--font-body); display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; text-align: center; }
+.big.alt { background: var(--accent); color: #1C2840; }
+.big.ghost { background: transparent; color: var(--ink); border: 2px solid var(--line); }
+.big:disabled { opacity: .5; cursor: default; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; }
+.row > .big { flex: 1 1 200px; }
+
+.lesson { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; text-align: left; cursor: pointer; width: 100%; background: var(--surface); border: 3px solid var(--line); border-radius: 22px; padding: 16px; }
+.lesson:hover { border-color: var(--primary); }
+.lesson .num { width: 72px; height: 72px; border-radius: 18px; background: var(--accent); color: #1C2840; font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; display: grid; place-items: center; }
+.lesson .pics { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.lesson .pics .pic { width: 40px; height: 40px; border-radius: 10px; }
+.lesson.locked { cursor: default; opacity: .6; border-style: dashed; }
+.lesson.locked .num { background: var(--line); color: var(--muted); }
+
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { min-height: 48px; padding: 6px 16px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); cursor: pointer; font-weight: 700; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+.exlist { display: flex; flex-direction: column; gap: 10px; }
+.ex { display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center; background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: 10px 12px 10px 10px; }
+.ex .n { width: 56px; height: 56px; border-radius: 14px; background: var(--accent-soft); font-family: var(--font-display); font-weight: 800; font-size: 1.7rem; display: grid; place-items: center; }
+.ex button.go { all: unset; cursor: pointer; display: flex; flex-direction: column; min-width: 0; padding: 4px 0; }
+.ex button.go strong { font-size: 1.2rem; }
+.ex button.go span { color: var(--muted); font-size: .95rem; }
+.ex button.go:focus-visible { outline: 4px solid var(--accent); border-radius: 8px; }
+.row > .printlink { align-self: center; }
+.printlink { font-size: .9rem; color: var(--primary); font-weight: 700; text-decoration: none; padding: 10px 12px; border-radius: 12px; border: 2px solid var(--line); white-space: nowrap; }
+.ex.test .n { background: var(--primary); color: var(--primary-ink); }
+
+.pic { background: var(--pic); border-radius: 18px; display: block; border: 2px solid var(--line); }
+.pic svg { width: 100%; height: 100%; display: block; }
+
+.flash { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.flash button { background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+.flash .pic { width: 96px; height: 96px; }
+.flash .en { font-size: 1.35rem; font-weight: 700; }
+.flash .sk { color: var(--muted); }
+
+.progress { height: 14px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.progress div { height: 100%; background: var(--good); border-radius: 999px; transition: width .3s; }
+.qcount { font-family: var(--font-display); font-weight: 600; color: var(--muted); }
+
+.question { align-items: center; text-align: center; }
+.question .pic.lg { width: 170px; height: 170px; }
+.sk-word { font-size: 1.5rem; font-weight: 700; }
+.prompt { font-size: 1.15rem; color: var(--muted); }
+.answer-input { width: 100%; max-width: 420px; min-height: 68px; font: inherit; font-size: 1.8rem; text-align: center; border-radius: 16px; border: 3px solid var(--line); background: var(--bg); color: var(--ink); padding: 6px 12px; }
+.answer-input:focus { border-color: var(--primary); outline: none; }
+.letters { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; font-size: 2rem; font-weight: 700; }
+.letters span, .letters input { width: 44px; height: 58px; display: grid; place-items: center; text-align: center; font: inherit; }
+.letters input { border-radius: 12px; border: 3px solid var(--primary); background: var(--accent-soft); color: var(--ink); padding: 0; }
+.letters input:focus { outline: 4px solid var(--accent); }
+.sentence { font-size: 1.6rem; font-weight: 700; line-height: 1.5; }
+.blank { display: inline-block; min-width: 110px; border-bottom: 4px solid var(--accent); color: var(--primary); }
+.options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; width: 100%; }
+.options.one { grid-template-columns: 1fr; }
+.opt { min-height: 72px; border-radius: 18px; border: 3px solid var(--line); background: var(--surface); font-size: 1.35rem; font-weight: 700; cursor: pointer; padding: 10px 14px; }
+.opt.sent { font-size: 1.15rem; text-align: left; }
+.opt:hover:not(:disabled) { border-color: var(--primary); }
+.opt.good { background: var(--good-soft); border-color: var(--good); }
+.opt.bad { background: var(--bad-soft); border-color: var(--bad); }
+
+.board { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
+.board .col { display: flex; flex-direction: column; gap: 10px; }
+.tile { min-height: 96px; border-radius: 18px; border: 3px solid var(--line); background: var(--surface); cursor: pointer; display: grid; place-items: center; padding: 6px; font-size: 1.35rem; font-weight: 700; }
+.tile .pic { width: 80px; height: 80px; border: none; }
+.tile.sel { border-color: var(--primary); box-shadow: 0 0 0 4px var(--accent); }
+.tile.done { cursor: default; color: #1C2840; }
+.board.board8 .tile { min-height: 72px; font-size: 1.2rem; padding: 4px; }
+.board.board8 .tile .pic { width: 60px; height: 60px; }
+.board.board8 .col { gap: 8px; }
+.tile.shake { animation: shake .35s; border-color: var(--bad); }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+.feedback { border-radius: 18px; padding: 14px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; font-size: 1.25rem; font-weight: 700; width: 100%; }
+.feedback.good { background: var(--good-soft); color: var(--good); }
+.feedback.bad { background: var(--bad-soft); color: var(--bad); }
+.feedback .correct { color: var(--ink); }
+
+.speak { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); cursor: pointer; display: inline-grid; place-items: center; flex: none; padding: 0; }
+.speak svg { width: 26px; height: 26px; }
+
+.score { font-family: var(--font-display); font-size: 3.4rem; font-weight: 800; line-height: 1; }
+.stars { display: flex; gap: 8px; justify-content: center; }
+.stars svg { width: 54px; height: 54px; }
+.redo { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; width: 100%; }
+.redo div { display: flex; flex-direction: column; align-items: center; gap: 2px; background: var(--bad-soft); border-radius: 16px; padding: 10px; }
+.redo .pic { width: 64px; height: 64px; }
+
+.note { background: var(--accent-soft); border-radius: 16px; padding: 14px 16px; }
+.sheets { display: flex; flex-direction: column; gap: 8px; }
+.sheetbtn { all: unset; cursor: pointer; color: var(--primary); font-weight: 700; text-decoration: underline; padding: 4px 0; }
+.sheetbtn:focus-visible { outline: 4px solid var(--accent); }
+button.printlink { background: var(--surface); cursor: pointer; font-family: inherit; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-width: min(92vw, 520px); background: var(--ink); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 700; z-index: 20; text-align: center; }
+.toggle { display: flex; align-items: center; gap: 12px; font-size: 1.15rem; }
+.toggle input { width: 28px; height: 28px; }
+footer.foot { text-align: center; }
+footer.foot button { background: none; border: none; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 1rem; padding: 12px; }
+
+.mecard { display: flex; gap: 10px; align-items: center; background: var(--accent-soft); border: 3px solid var(--accent); border-radius: 22px; padding: 10px 12px; }
+.mecard-main { all: unset; cursor: pointer; display: flex; gap: 12px; align-items: center; flex: 1; min-width: 0; font-size: 1.05rem; }
+.mecard-main:focus-visible { outline: 4px solid var(--accent); border-radius: 12px; }
+.mecard-main .pic, .earned-row > .pic { width: 60px; height: 60px; flex: none; border-radius: 50%; }
+.who { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.whobtn { display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--surface); border: 3px solid var(--line); border-radius: 20px; padding: 12px 8px; cursor: pointer; font-size: 1.05rem; }
+.whobtn:hover { border-color: var(--primary); }
+.whobtn.cur { border-color: var(--accent); background: var(--accent-soft); }
+.whobtn .pic { width: 84px; height: 84px; border-radius: 50%; }
+.dip-avatar .pic { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--accent); }
+
+.mecard > svg { width: 56px; height: 56px; }
+.mestars { font-family: var(--font-display); font-size: 1.8rem; }
+.go-arrow { font-size: 2rem; font-weight: 800; color: var(--muted); }
+.plus { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); }
+.star-sm svg { width: 24px; height: 24px; display: block; }
+.earned-row { display: flex; align-items: center; gap: 14px; }
+.earned-row > svg { width: 64px; height: 64px; flex: none; }
+.newsticker { background: var(--good-soft); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.album { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 10px; width: 100%; }
+.sticker { display: flex; flex-direction: column; align-items: center; gap: 4px; font-weight: 700; font-size: .9rem; }
+.sticker .pic { width: 76px; height: 76px; border-radius: 50%; border: 3px solid var(--accent); padding: 6px; }
+.sticker.locked .pic { filter: grayscale(1); opacity: .35; border-style: dashed; border-color: var(--line); }
+.sticker.locked span { color: var(--muted); }
+.diploma { background: var(--surface); border: 6px double var(--accent); border-radius: 26px; padding: 28px 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.dip-logo svg { width: 64px; height: 64px; }
+.dip-label { font-family: var(--font-display); font-weight: 800; font-size: 2.6rem; letter-spacing: .12em; color: var(--primary); line-height: 1; }
+.dip-name { font-family: var(--font-display); font-weight: 800; font-size: 2.2rem; line-height: 1.1; overflow-wrap: anywhere; }
+.dip-level { font-family: var(--font-display); font-weight: 600; font-size: 1.4rem; background: var(--accent); color: #1C2840; border-radius: 999px; padding: 4px 18px; }
+.dip-album { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
+.dip-album .pic { width: 60px; height: 60px; }
+
+.achcard { flex-direction: column; align-items: stretch; gap: 10px; }
+.achtop { display: flex; gap: 10px; align-items: center; }
+.mename { display: block; font-size: 1.2rem; overflow-wrap: anywhere; }
+.wallet { display: inline-flex; align-items: center; gap: 4px; flex: none; }
+.wallet .star-sm svg { width: 30px; height: 30px; }
+.achbtn { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--surface); border: 3px solid var(--accent); border-radius: 18px; padding: 10px 14px; cursor: pointer; text-align: left; font: inherit; color: var(--ink); min-height: 72px; }
+.achbtn:hover { box-shadow: 0 0 0 3px var(--accent-soft); }
+.achbtn strong { font-family: var(--font-display); font-size: 1.35rem; display: block; line-height: 1.1; }
+.achicon svg { width: 52px; height: 52px; display: block; }
+.achstats { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: .95rem; color: var(--muted); }
+.achstats b { color: var(--ink); font-size: 1.1rem; }
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.stat { background: var(--accent-soft); border-radius: 16px; padding: 10px 12px; display: flex; flex-direction: column; }
+.stat b { font-family: var(--font-display); font-size: 1.9rem; line-height: 1.1; }
+.stat span { font-size: .95rem; color: var(--muted); }
+.stat.gold { background: var(--accent); } .stat.gold b, .stat.gold span { color: #1C2840; }
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; width: 100%; }
+.badge { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; padding: 4px; font: inherit; color: var(--ink); font-size: .9rem; text-align: center; cursor: pointer; line-height: 1.2; }
+.badge svg { width: 76px; height: 76px; }
+.badge.locked svg { filter: grayscale(1); opacity: .3; }
+.badge.locked strong { color: var(--muted); }
+.dip-badges { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
+.dip-badges svg { width: 56px; height: 56px; }
+.dip-level.small { font-size: 1.05rem; display: inline-block; margin-top: 4px; }
+.achhead h2 { overflow-wrap: anywhere; }
+.dipbtn svg { width: 36px; height: 36px; }
+
+.gamesbtn { border-color: #8E55C9; }
+.gamecard.locked .pic { filter: grayscale(1); opacity: .45; }
+.gamecard .pic { width: 72px; height: 72px; flex: none; }
+.gamebox { padding: 12px; gap: 10px; }
+.gamehud { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px; font-size: 1.2rem; }
+.ghint { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ghint strong { font-family: var(--font-display); font-size: 1.6rem; }
+.ghint .pic.tiny { width: 40px; height: 40px; }
+.gstats { display: flex; align-items: center; gap: 4px; font-weight: 800; font-size: 1.3rem; white-space: nowrap; }
+#glives { color: #E5443B; letter-spacing: 1px; } #glives .lost { opacity: .2; }
+.gwrap { position: relative; touch-action: none; }
+.gwrap canvas { display: block; border-radius: 14px; touch-action: none; }
+.gover { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px; text-align: center; background: rgba(255,255,255,.9); color: #1C2840; border-radius: 14px; }
+.gover[hidden] { display: none; }
+.dpad { display: grid; grid-template-columns: repeat(3, 72px); grid-template-rows: repeat(2, 64px); gap: 8px; justify-content: center; touch-action: manipulation; }
+.dpad button { border: none; border-radius: 16px; background: var(--primary); color: var(--primary-ink); font-size: 1.6rem; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.dpad [data-dir="up"] { grid-column: 2; grid-row: 1; } .dpad [data-dir="left"] { grid-column: 1; grid-row: 2; } .dpad [data-dir="down"] { grid-column: 2; grid-row: 2; } .dpad [data-dir="right"] { grid-column: 3; grid-row: 2; }
+
+.sh-sk { font-size: 10.5pt; color: #555; }
+.sh-keylist.wide { columns: 2; font-size: 12pt; line-height: 1.5; }
+.sh-keylist.wide div { margin-bottom: 1.5mm; }
+.help { width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--primary); background: var(--surface); color: var(--primary); font-size: 1.5rem; font-weight: 800; cursor: pointer; flex: none; font-family: var(--font-display); }
+.help[aria-expanded="true"] { background: var(--primary); color: var(--primary-ink); }
+.help-text { background: var(--accent-soft); border-radius: 12px; padding: 8px 12px; font-size: 1.1rem; }
+.helpline { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.optrow { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.optrow .helpline { display: contents; }
+.optrow .help-text { grid-column: 1 / -1; }
+html:not(.has-voice) .speak, html:not(.has-voice) .voice-on, html.has-voice .voice-off { display: none !important; }
+.avphoto { overflow: hidden; padding: 0 !important; }
+.avphoto img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: inherit; }
+.avpick { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; }
+.avopt { display: flex; flex-direction: column; align-items: center; gap: 2px; background: var(--surface); border: 3px solid var(--line); border-radius: 18px; padding: 6px; cursor: pointer; font-weight: 700; font-size: .9rem; }
+.avopt .pic { width: 60px; height: 60px; border-radius: 50%; border: none; }
+.avopt.cur { border-color: var(--accent); background: var(--accent-soft); }
+.avopt.upload .plusbig { width: 60px; height: 60px; border-radius: 50%; border: 3px dashed var(--line); display: grid; place-items: center; font-size: 2rem; color: var(--muted); }
+.avopt.upload .pic img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+.hintbtn { display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 6px 16px; border-radius: 999px; border: 2px dashed var(--accent); background: var(--accent-soft); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+.hintcost { display: inline-flex; align-items: center; gap: 2px; }
+.gone { opacity: .25; }
+.hintbtn.poor { opacity: .5; border-style: dotted; }
+.letters input.given { background: var(--good-soft); border-color: var(--good); }
+.tile.hinted { animation: hint 1.6s; }
+@keyframes hint { 0%, 50%, 100% { box-shadow: 0 0 0 0 transparent; } 25%, 75% { box-shadow: 0 0 0 6px var(--accent); } }
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.9rem; }
+  .ex { grid-template-columns: 48px 1fr; }
+  .ex .n { width: 48px; height: 48px; }
+  .ex .printlink { grid-column: 2; justify-self: start; }
+  .options { grid-template-columns: 1fr; }
+  .question .pic.lg { width: 140px; height: 140px; }
+  .letters span, .letters input { width: 36px; height: 52px; }
+}
+@media (prefers-reduced-motion: reduce) { .tile.shake { animation: none; } .progress div { transition: none; } }
+
+/* ---------- A4 worksheets (used to build the printable PDFs) ---------- */
+body.printmode { background: #fff; color: #111; font-size: 13pt; }
+@page { size: A4; margin: 0; }
+.sheet { width: 210mm; height: 297mm; padding: 14mm 15mm 12mm; display: flex; flex-direction: column; gap: 5mm; page-break-after: always; break-after: page; overflow: hidden; background: #fff; color: #111; position: relative; }
+.sheet:last-child { page-break-after: auto; break-after: auto; }
+.sh-head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1.5pt solid #111; padding-bottom: 2mm; font-size: 11pt; gap: 6mm; }
+.sh-head b { font-family: var(--font-display); font-size: 13pt; }
+.sh-title { font-family: var(--font-display); font-size: 22pt; font-weight: 800; }
+.sh-key .sh-title { color: #23905A; }
+.sh-instr { font-size: 12.5pt; }
+.sh-foot { position: absolute; bottom: 7mm; left: 15mm; right: 15mm; display: flex; justify-content: space-between; font-size: 9pt; color: #666; }
+.sh-pic { width: 22mm; height: 22mm; border: 1pt solid #bbb; border-radius: 3mm; background: #fff; }
+.sh-pic svg { width: 100%; height: 100%; display: block; }
+.sh-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm 6mm; }
+.sh-cell { display: grid; grid-template-columns: auto 1fr; gap: 1mm 3mm; align-items: center; }
+.sh-cell .no { font-weight: 700; font-size: 11pt; grid-column: 1 / -1; }
+.sh-cell .sk { font-size: 11pt; color: #444; }
+.sh-line { border-bottom: 1pt solid #111; height: 11mm; grid-column: 1 / -1; }
+.sh-pattern { font-size: 17pt; letter-spacing: 1.5mm; font-weight: 700; grid-column: 1 / -1; white-space: nowrap; }
+.sh-match { display: grid; grid-template-columns: 1fr 42mm 1fr; align-items: center; row-gap: 3mm; }
+.sh-match .l, .sh-match .r { display: flex; align-items: center; gap: 3mm; }
+.sh-match .r { justify-content: flex-start; font-size: 16pt; font-weight: 700; }
+.sh-match .l { justify-content: flex-end; }
+.sh-dot { width: 3mm; height: 3mm; border-radius: 50%; background: #111; flex: none; }
+.sh-match .pic { flex: none; width: 19mm; height: 19mm; border: 1pt solid #bbb; border-radius: 3mm; }
+.sh-match .sent { font-size: 13pt; font-weight: 400; }
+.sh-bank { border: 1.5pt dashed #111; border-radius: 3mm; padding: 3mm 4mm; display: flex; flex-wrap: wrap; gap: 2mm 7mm; font-size: 15pt; font-weight: 700; }
+.sh-sents { display: flex; flex-direction: column; gap: 4.2mm; font-size: 14pt; }
+.sh-sents .bl { display: inline-block; width: 38mm; border-bottom: 1pt solid #111; }
+.sh-sec { display: flex; flex-direction: column; gap: 3mm; }
+.sh-sec h3 { font-size: 14pt; }
+.sh-row5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4mm; }
+.sh-row5 .sh-cell { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+.sh-row5 .sh-pic { width: 17mm; height: 17mm; }
+.sh-sec { gap: 2mm; }
+.sh-sec .sh-sents { gap: 2.4mm; font-size: 13pt; }
+.sh-sec .sh-bank { padding: 2mm 4mm; font-size: 14pt; }
+.sh-row5 .sh-pattern { font-size: 14pt; letter-spacing: .8mm; }
+.sh-row5 .sh-line { width: 100%; height: 8mm; }
+.sh-box { width: 9mm; height: 9mm; border: 1.2pt solid #111; border-radius: 1.5mm; }
+.sh-points { margin-left: auto; font-size: 12pt; border: 1.5pt solid #111; border-radius: 2mm; padding: 1.5mm 4mm; }
+.sh-keylist { columns: 3; column-gap: 8mm; font-size: 13pt; line-height: 1.7; }
+.sh-keylist div { break-inside: avoid; }
+.sh-keylist b { color: #23905A; }
+</style>
+<style>body { padding-top: env(safe-area-inset-top, 0px); }</style>
+</head>
+<body>
+
+
+<div id="app" aria-live="polite"></div>
+
+<script>
+/* =====================================================================
+   NASTAVENIA — tu sa odomykajú lekcie
+   unlockMode: 'central' = lekcie odomyká správca (zoznam unlocked nižšie)
+               'parent'  = každý rodič si ich odomyká sám (v časti Pre rodičov)
+               'both'    = platí zoznam nižšie + rodič môže odomknúť ďalšie
+   ===================================================================== */
+const CONFIG = {
+  unlockMode: 'central',
+  unlocked: [1, 2, 3],
+};
+/* Webová verzia (vlastný server): zoznam odomknutých lekcií sa číta zo súboru lekcie.json */
+const WEB = true;
+if (WEB) { try { const u = JSON.parse(localStorage.getItem('slovickovo:remoteUnlocked')); if (Array.isArray(u)) CONFIG.unlocked = u; } catch (e) {} }
+
+/* ---------------- obrázky (vlastné kresby, SVG) ---------------- */
+const INK = '#2B2B3A';
+const svg = (inner) => `<svg viewBox="0 0 100 100" fill="none" stroke="${INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${inner}</svg>`;
+const blob = (c) => `<path d="M50 13c11 0 15 9 25 11s14 13 9 23 5 19-5 27-17 10-29 10-23-4-27-15 3-16-3-26 1-21 12-23 7-7 18-7z" fill="${c}"/><path d="M34 32c4-5 10-7 15-6" stroke="#fff" stroke-opacity=".7" stroke-width="5"/>`;
+const day = (abbr, weekend) => `<rect x="17" y="16" width="66" height="70" rx="7" fill="#fff"/><path d="M17 23a7 7 0 0 1 7-7h52a7 7 0 0 1 7 7v15H17z" fill="${weekend ? '#E5443B' : '#3B7DD8'}"/><line x1="35" y1="10" x2="35" y2="22"/><line x1="65" y1="10" x2="65" y2="22"/><text x="50" y="74" font-size="30" font-weight="800" text-anchor="middle" font-family="Baloo 2, Trebuchet MS, sans-serif" fill="${weekend ? '#E5443B' : INK}" stroke="none">${abbr}</text>`;
+let ticks = ''; for (let i = 0; i <= 13; i++) { const x = 13 + i * 5.7; ticks += `<line x1="${x}" y1="38" x2="${x}" y2="${i % 2 ? 45 : 50}" stroke-width="2"/>`; }
+
+const HI = '#FF8A1F', SKIN = '#F8D9BE';
+const numCard = (n) => `<rect x="14" y="14" width="72" height="72" rx="14" fill="${['#E5443B','#FF8A1F','#FFD43B','#46B05A','#2F7BE0','#8E55C9','#F59AC6','#5FA8E8','#3FA36B','#C8915A'][n - 1]}"/><text x="50" y="68" font-size="46" font-weight="800" text-anchor="middle" font-family="Baloo 2, Trebuchet MS, sans-serif" fill="#fff" stroke="${INK}" stroke-width="2">${n}</text>`;
+function face(part) {
+  const c = (p) => part === p ? HI : SKIN;
+  return `<ellipse cx="18" cy="54" rx="7" ry="10" fill="${c('ears')}"/><ellipse cx="82" cy="54" rx="7" ry="10" fill="${c('ears')}"/>
+    <circle cx="50" cy="54" r="32" fill="${part === 'face' ? '#FFB870' : SKIN}"/><path d="M19 46q2-28 31-28t31 28q-12-14-31-14t-31 14z" fill="#5A3A22"/>
+    <path d="M33 42q6-5 12 0M55 42q6-5 12 0" stroke="${part === 'eyebrows' ? HI : INK}" stroke-width="${part === 'eyebrows' ? 6 : 3}"/>
+    ${part === 'eyes' ? `<circle cx="39" cy="52" r="7" fill="#fff" stroke="${HI}" stroke-width="3"/><circle cx="61" cy="52" r="7" fill="#fff" stroke="${HI}" stroke-width="3"/><circle cx="39" cy="52" r="3.5" fill="#2F7BE0"/><circle cx="61" cy="52" r="3.5" fill="#2F7BE0"/>` : `<circle cx="39" cy="52" r="3.2" fill="${INK}"/><circle cx="61" cy="52" r="3.2" fill="${INK}"/>`}
+    <path d="M50 50l-${part === 'nose' ? 8 : 5} ${part === 'nose' ? 18 : 14}h${part === 'nose' ? 16 : 10}z" fill="${c('nose')}"/><path d="M40 72q10 7 20 0"/>`;
+}
+function figure(part) {
+  const c = (p) => part === p ? HI : SKIN;
+  const limb = (d, col, w = 8) => `<path d="${d}" stroke="${INK}" stroke-width="${w + 3}"/><path d="${d}" stroke="${col}" stroke-width="${w}"/>`;
+  return `<g transform="translate(50 52) scale(1.12) translate(-50 -50)">${limb('M40 38L24 60', c('arms'))}${limb('M60 38L76 60', c('arms'))}
+    ${limb('M45 64L42 88', part === 'legs' ? HI : '#2F4F8F', 9)}${limb('M55 64L58 88', part === 'legs' ? HI : '#2F4F8F', 9)}
+    <rect x="37" y="32" width="26" height="34" rx="6" fill="#5FA8E8"/>
+    ${part === 'shoulders' ? `<circle cx="39" cy="36" r="6" fill="${HI}"/><circle cx="61" cy="36" r="6" fill="${HI}"/>` : ''}
+    <circle cx="22" cy="63" r="5.5" fill="${c('hands')}"/><circle cx="78" cy="63" r="5.5" fill="${c('hands')}"/>
+    <circle cx="50" cy="19" r="12" fill="${SKIN}"/><path d="M38 17q1-11 12-11t12 11q-6-5-12-5t-12 5z" fill="#5A3A22"/><circle cx="46" cy="19" r="1.6" fill="${INK}"/><circle cx="54" cy="19" r="1.6" fill="${INK}"/><path d="M46 24q4 3 8 0" stroke-width="2"/></g>`;
+}
+
+const PICS = {
+  sunday: day('NE', true), monday: day('PO'), tuesday: day('UT'), wednesday: day('ST'), thursday: day('ŠT'), friday: day('PI'), saturday: day('SO', true),
+  red: blob('#E5443B'), yellow: blob('#FFD43B'), pink: blob('#F59AC6'), green: blob('#46B05A'), purple: blob('#8E55C9'), orange: blob('#FF8A1F'), blue: blob('#2F7BE0'),
+  pen: `<g transform="rotate(-35 50 50)"><rect x="12" y="43" width="58" height="14" rx="5" fill="#2F7BE0"/><path d="M70 43 L87 50 L70 57z" fill="#DFE6EF"/><path d="M83 48.4 L88 50 L83 51.6z" fill="#1B3F8F"/><rect x="18" y="36" width="24" height="5" rx="2" fill="#9AA7B8"/></g>`,
+  pencil: `<g transform="rotate(-35 50 50)"><rect x="22" y="41" width="50" height="18" fill="#FFC93C"/><rect x="9" y="41" width="13" height="18" rx="3" fill="#F59AC6"/><path d="M72 41 L91 50 L72 59z" fill="#F2D3A2"/><path d="M84 46.7 L91 50 L84 53.3z" fill="${INK}"/><line x1="22" y1="50" x2="72" y2="50" stroke-width="1.5"/></g>`,
+  rubber: `<g transform="rotate(-15 50 50)"><rect x="16" y="34" width="68" height="32" rx="7" fill="#F59AC6"/><path d="M52 34h25a7 7 0 0 1 7 7v18a7 7 0 0 1-7 7H52z" fill="#5FA8E8"/><rect x="16" y="34" width="68" height="32" rx="7"/></g>`,
+  ruler: `<g transform="rotate(-12 50 50)"><rect x="8" y="36" width="84" height="26" rx="3" fill="#F7D774"/>${ticks}</g>`,
+  book: `<rect x="25" y="16" width="52" height="68" rx="5" fill="#3FA36B"/><line x1="33" y1="16" x2="33" y2="84"/><rect x="42" y="30" width="26" height="12" rx="2" fill="#fff"/><path d="M25 78h52" stroke-width="2"/>`,
+  bag: `<path d="M38 30c0-14 24-14 24 0" stroke-width="5"/><rect x="22" y="28" width="56" height="58" rx="14" fill="#E5443B"/><rect x="31" y="54" width="38" height="22" rx="6" fill="#FF8A80"/><line x1="31" y1="62" x2="69" y2="62"/><circle cx="50" cy="40" r="3" fill="${INK}"/>`,
+  folder: `<path d="M12 28h26l7 8h43v48H12z" fill="#E9A92F"/><path d="M12 42h76v42H12z" fill="#FFC93C"/><rect x="30" y="56" width="40" height="12" rx="3" fill="#fff"/>`,
+  door: `<rect x="28" y="10" width="44" height="80" rx="2" fill="#A86B3C"/><rect x="34" y="18" width="32" height="27" rx="2" fill="#C48653"/><rect x="34" y="53" width="32" height="29" rx="2" fill="#C48653"/><circle cx="63" cy="50" r="3.5" fill="#FFC93C"/><line x1="14" y1="90" x2="86" y2="90"/>`,
+  window: `<rect x="16" y="14" width="68" height="66" rx="3" fill="#BFE3FF"/><circle cx="68" cy="30" r="7" fill="#FFD43B" stroke="none"/><line x1="50" y1="14" x2="50" y2="80"/><line x1="16" y1="47" x2="84" y2="47"/><line x1="24" y1="34" x2="34" y2="24" stroke="#fff" stroke-width="3"/><rect x="10" y="80" width="80" height="7" rx="2" fill="#E8E1D5"/>`,
+  bookcase: `<rect x="16" y="8" width="68" height="84" rx="3" fill="#B9814F"/><rect x="22" y="14" width="56" height="72" fill="#8F5F36"/><line x1="22" y1="38" x2="78" y2="38" stroke-width="4"/><line x1="22" y1="62" x2="78" y2="62" stroke-width="4"/><rect x="25" y="18" width="7" height="19" fill="#E5443B" stroke-width="2"/><rect x="33" y="21" width="7" height="16" fill="#2F7BE0" stroke-width="2"/><rect x="41" y="17" width="6" height="20" fill="#FFC93C" stroke-width="2"/><rect x="55" y="42" width="7" height="19" fill="#46B05A" stroke-width="2"/><rect x="63" y="45" width="7" height="16" fill="#F59AC6" stroke-width="2"/><rect x="27" y="66" width="7" height="19" fill="#8E55C9" stroke-width="2"/><rect x="35" y="68" width="7" height="17" fill="#FF8A1F" stroke-width="2"/><rect x="43" y="66" width="6" height="19" fill="#2F7BE0" stroke-width="2"/>`,
+  apple: `<path d="M50 32c-8-7-28-7-31 12-3 19 9 38 19 40 6 1 8-2 12-2s6 3 12 2c10-2 22-21 19-40-3-19-23-19-31-12z" fill="#E5443B"/><path d="M50 32c0-8 2-14 6-19" /><path d="M55 21c6-8 17-8 21-4-6 7-15 9-21 4z" fill="#46B05A"/><path d="M30 46c1-5 4-8 8-9" stroke="#fff" stroke-opacity=".7" stroke-width="4"/>`,
+  bird: `<path d="M24 54l-14-8 4 15z" fill="#2F7BE0"/><ellipse cx="46" cy="56" rx="26" ry="20" fill="#5FA8E8"/><circle cx="66" cy="40" r="14" fill="#5FA8E8"/><path d="M79 37l11 4-11 5z" fill="#FFC93C"/><circle cx="69" cy="37" r="2.6" fill="${INK}"/><path d="M28 52q14-4 22 10q-15 7-25-1z" fill="#2F7BE0"/><line x1="42" y1="76" x2="40" y2="88"/><line x1="52" y1="76" x2="54" y2="88"/>`,
+  cat: `<path d="M24 42L27 13l18 17z" fill="#F2A03D"/><path d="M76 42L73 13 55 30z" fill="#F2A03D"/><circle cx="50" cy="55" r="30" fill="#F2A03D"/><ellipse cx="39" cy="50" rx="3.5" ry="5.5" fill="${INK}"/><ellipse cx="61" cy="50" rx="3.5" ry="5.5" fill="${INK}"/><path d="M46 60h8l-4 5z" fill="#F59AC6"/><path d="M50 65q-4 6-9 3M50 65q4 6 9 3"/><path d="M14 56l18 2M14 66l18-3M86 56l-18 2M86 66l-18-3" stroke-width="2"/>`,
+  dog: `<path d="M27 32q-16 4-12 32q9 6 15-6z" fill="#7A4A2A"/><path d="M73 32q16 4 12 32q-9 6-15-6z" fill="#7A4A2A"/><circle cx="50" cy="52" r="27" fill="#C8915A"/><ellipse cx="50" cy="66" rx="15" ry="11" fill="#EBC79C"/><circle cx="40" cy="47" r="3.6" fill="${INK}"/><circle cx="60" cy="47" r="3.6" fill="${INK}"/><ellipse cx="50" cy="60" rx="5.5" ry="4" fill="${INK}"/><path d="M50 64v5M50 69q-5 4-9 0M50 69q5 4 9 0"/><path d="M47 72h6v6a3 3 0 0 1-6 0z" fill="#F07C8A" stroke-width="2"/>`,
+  /* čísla */
+  ...Object.fromEntries(['one','two','three','four','five','six','seven','eight','nine','ten'].map((n, i) => [n, numCard(i + 1)])),
+  /* hračky */
+  doll: `<path d="M35 34q15-26 30 0v10H35z" fill="#FFD43B"/><circle cx="50" cy="36" r="13" fill="#F8D9BE"/><circle cx="45" cy="35" r="1.8" fill="${INK}"/><circle cx="55" cy="35" r="1.8" fill="${INK}"/><path d="M45 41q5 4 10 0" stroke-width="2"/><path d="M41 50h18l9 28H32z" fill="#F59AC6"/><path d="M41 54l-11 12M59 54l11 12" stroke-width="5"/><path d="M44 78v12M56 78v12" stroke-width="5"/>`,
+  ball: `<circle cx="50" cy="52" r="34" fill="#FFD43B"/><path d="M50 18a34 34 0 0 1 34 34H50z" fill="#E5443B"/><path d="M50 86a34 34 0 0 1-34-34h34z" fill="#E5443B"/><circle cx="50" cy="52" r="34"/>`,
+  teddy: `<circle cx="32" cy="22" r="8" fill="#B8783F"/><circle cx="68" cy="22" r="8" fill="#B8783F"/><ellipse cx="50" cy="70" rx="22" ry="20" fill="#B8783F"/><circle cx="50" cy="34" r="18" fill="#C8915A"/><ellipse cx="50" cy="40" rx="8" ry="6" fill="#EBC79C"/><circle cx="50" cy="38" r="2.5" fill="${INK}"/><circle cx="43" cy="30" r="2.2" fill="${INK}"/><circle cx="57" cy="30" r="2.2" fill="${INK}"/><circle cx="30" cy="62" r="7" fill="#C8915A"/><circle cx="70" cy="62" r="7" fill="#C8915A"/><circle cx="38" cy="88" r="7" fill="#C8915A"/><circle cx="62" cy="88" r="7" fill="#C8915A"/><path d="M42 52l8 5 8-5-8-4z" fill="#E5443B" stroke-width="2"/>`,
+  puzzle: `<rect x="16" y="16" width="32" height="32" fill="#E5443B"/><rect x="52" y="16" width="32" height="32" fill="#2F7BE0"/><rect x="16" y="52" width="32" height="32" fill="#46B05A"/><rect x="58" y="58" width="32" height="32" fill="#FFD43B" transform="rotate(12 74 74)"/><circle cx="50" cy="32" r="6" fill="#E5443B"/><circle cx="32" cy="50" r="6" fill="#46B05A"/>`,
+  car: `<path d="M12 64v-12l12-4 10-14h30l12 14 12 4v12z" fill="#46B05A"/><path d="M38 38h11v10H31zM55 38h7l8 10H55z" fill="#BFE3FF"/><circle cx="30" cy="66" r="9" fill="#5A6275"/><circle cx="72" cy="66" r="9" fill="#5A6275"/><circle cx="30" cy="66" r="3" fill="#fff"/><circle cx="72" cy="66" r="3" fill="#fff"/>`,
+  kite: `<path d="M50 10L76 42 50 70 24 42z" fill="#FFD43B"/><path d="M50 10L76 42H50z" fill="#E5443B"/><path d="M50 70L24 42h26z" fill="#2F7BE0"/><path d="M50 10L76 42 50 70 24 42z"/><path d="M50 10v60M24 42h52" stroke-width="2"/><path d="M50 70q-6 8 2 14t-2 12" stroke-width="2"/><path d="M45 79l4 2-4 3zM55 85l-4 2 4 3z" fill="#F59AC6" stroke-width="1.5"/>`,
+  bike: `<circle cx="26" cy="64" r="15" fill="#fff"/><circle cx="74" cy="64" r="15" fill="#fff"/><path d="M26 64l16-26h26l6 26M42 38l12 26 14-26M54 64H26" stroke="#E5443B" stroke-width="4"/><path d="M36 32h12" stroke-width="5"/><path d="M64 30l6-4h6" stroke-width="4"/><circle cx="26" cy="64" r="15"/><circle cx="74" cy="64" r="15"/>`,
+  train: `<rect x="40" y="26" width="28" height="40" rx="3" fill="#E5443B"/><rect x="46" y="32" width="16" height="12" rx="2" fill="#BFE3FF"/><rect x="10" y="44" width="34" height="22" rx="3" fill="#2F7BE0"/><rect x="18" y="30" width="8" height="14" fill="#5A6275"/><path d="M8 66h80" stroke-width="3"/><rect x="68" y="46" width="22" height="20" rx="3" fill="#46B05A"/><circle cx="22" cy="70" r="7" fill="#FFD43B"/><circle cx="54" cy="70" r="7" fill="#FFD43B"/><circle cx="80" cy="70" r="5" fill="#FFD43B"/><path d="M20 22q4-8 10-6" stroke-width="2"/>`,
+  game: `<rect x="12" y="24" width="76" height="52" rx="18" fill="#E5443B"/><rect x="32" y="34" width="36" height="28" rx="3" fill="#2B3A55"/><path d="M19 50h10M24 45v10" stroke-width="4"/><circle cx="78" cy="45" r="3.5" fill="#FFD43B"/><circle cx="78" cy="56" r="3.5" fill="#46B05A"/>`,
+  scooter: `<path d="M22 76h46l8-4" stroke-width="6" stroke="#2F7BE0"/><path d="M76 74L66 16" stroke-width="5" stroke="#2F7BE0"/><path d="M56 16h20" stroke-width="6"/><circle cx="22" cy="80" r="8" fill="#5A6275"/><circle cx="78" cy="80" r="8" fill="#5A6275"/>`,
+  egg: `<ellipse cx="50" cy="54" rx="26" ry="34" fill="#FFF6E5"/><path d="M38 38q4-8 10-10" stroke="#E8DCC6" stroke-width="5"/>`,
+  fig: `<path d="M50 20c-6 10-28 26-24 46 3 16 15 22 24 22s21-6 24-22c4-20-18-36-24-46z" fill="#8E55C9"/><path d="M50 20v-8" stroke-width="4"/><path d="M52 14c6-6 14-4 16 0-6 4-12 4-16 0z" fill="#46B05A"/><path d="M38 60q2-10 8-14" stroke="#fff" stroke-opacity=".6" stroke-width="4"/>`,
+  goat: `<path d="M38 28q-10-18 4-22M58 28q8-18 20-14" stroke="#B9814F" stroke-width="5"/><path d="M30 36l-14-4 8 10z" fill="#EDE8DF"/><ellipse cx="48" cy="48" rx="20" ry="24" fill="#F6F2EA"/><path d="M66 36l14-4-8 10z" fill="#EDE8DF"/><circle cx="41" cy="44" r="2.8" fill="${INK}"/><circle cx="55" cy="44" r="2.8" fill="${INK}"/><ellipse cx="48" cy="62" rx="9" ry="6" fill="#F2C9C0"/><path d="M42 72l6 18 6-18z" fill="#E8E1D5"/>`,
+  hat: `<ellipse cx="50" cy="66" rx="40" ry="12" fill="#FFD43B"/><path d="M28 64c0-30 44-30 44 0z" fill="#FFD43B"/><path d="M29 56q21 8 42 0v-8q-21 8-42 0z" fill="#F59AC6" stroke-width="2"/>`,
+  ink: `<rect x="28" y="40" width="44" height="46" rx="8" fill="#2B3A55"/><rect x="40" y="24" width="20" height="16" fill="#5A6275"/><rect x="36" y="52" width="28" height="18" rx="2" fill="#fff"/><path d="M44 61h12" stroke-width="2"/><path d="M76 20L58 50" stroke="#9AA7B8" stroke-width="4"/>`,
+  jam: `<rect x="30" y="16" width="40" height="12" rx="3" fill="#E5443B"/><path d="M28 30h44v46a10 10 0 0 1-10 10H38a10 10 0 0 1-10-10z" fill="#C2185B"/><rect x="36" y="44" width="28" height="22" rx="3" fill="#fff"/><path d="M50 50c-6-6-12 2-6 8l6 4 6-4c6-6 0-14-6-8z" fill="#E5443B" stroke-width="1.5"/>`,
+  lion: `<circle cx="50" cy="50" r="38" fill="#D9822B"/><circle cx="50" cy="52" r="24" fill="#FFC93C"/><circle cx="34" cy="32" r="6" fill="#FFC93C"/><circle cx="66" cy="32" r="6" fill="#FFC93C"/><circle cx="42" cy="48" r="3" fill="${INK}"/><circle cx="58" cy="48" r="3" fill="${INK}"/><path d="M45 57h10l-5 5z" fill="#7A4A2A"/><path d="M50 62q-4 6-9 4M50 62q4 6 9 4"/>`,
+  /* telo */
+  arms: figure('arms'), legs: figure('legs'), hands: figure('hands'), shoulders: figure('shoulders'),
+  nose: face('nose'), face: face('face'), ears: face('ears'), eyes: face('eyes'), eyebrows: face('eyebrows'),
+  fingers: `<rect x="28" y="50" width="44" height="40" rx="12" fill="#F8D9BE"/>${[30, 40, 50, 60].map((x, i) => `<rect x="${x}" y="${16 + (i === 0 || i === 3 ? 8 : 0)}" width="9" height="40" rx="4.5" fill="#FF8A1F"/>`).join('')}<rect x="66" y="56" width="9" height="26" rx="4.5" fill="#FF8A1F" transform="rotate(-40 70 70)"/>`,
+};
+const picHTML = (key, cls = '') => `<span class="pic ${cls}">${svg(PICS[key] || '')}</span>`;
+const LOGO = svg(`<rect x="10" y="14" width="80" height="72" rx="12" fill="#FFB81C"/><path d="M50 22v58" stroke-width="3"/><path d="M18 30h24M18 42h24M18 54h18M58 30h24M58 42h20M58 54h24M58 66h14" stroke-width="3"/><g transform="rotate(-35 50 50)"><rect x="34" y="64" width="40" height="11" fill="#2763D6"/><path d="M74 64l12 5.5-12 5.5z" fill="#F2D3A2"/></g>`);
+const SPEAKER = svg(`<path d="M18 40h14l18-15v50L32 60H18z" fill="currentColor" stroke="currentColor"/><path d="M62 38q8 12 0 24M71 30q15 20 0 40" stroke="currentColor" stroke-width="5"/>`);
+const STAR = (on) => svg(`<path d="M50 10l12 25 27 3-20 19 6 27-25-14-25 14 6-27-20-19 27-3z" fill="${on ? '#FFB81C' : 'none'}" stroke="${on ? '#C98500' : '#9AA7B8'}" stroke-width="4"/>`);
+
+/* ---------------- slovná zásoba ----------------
+   en, sk, obrázok, veta (___ = miesto pre slovo), avoid = slová, ktoré by sa do vety tiež hodili */
+const W = (en, sk, pic, sent, avoid = []) => ({ en, sk, pic, sent, avoid });
+const LESSONS = [
+  {
+    id: 1, title: 'Lekcia 1', name: 'Hello!', book: 'Starter',
+    groups: [
+      { id: 'cisla', name: 'Čísla 1–10', words: [
+        W('one', 'jeden', 'one', 'I have got ___ nose.'),
+        W('two', 'dva', 'two', 'One and one is ___.'),
+        W('three', 'tri', 'three', 'Two and one is ___.'),
+        W('four', 'štyri', 'four', 'Two and two is ___.'),
+        W('five', 'päť', 'five', 'Four and one is ___.'),
+        W('six', 'šesť', 'six', 'Three and three is ___.'),
+        W('seven', 'sedem', 'seven', 'Six and one is ___.'),
+        W('eight', 'osem', 'eight', 'Four and four is ___.'),
+        W('nine', 'deväť', 'nine', 'Eight and one is ___.'),
+        W('ten', 'desať', 'ten', 'Five and five is ___.'),
+      ]},
+      { id: 'dni', name: 'Dni v týždni', words: [
+        W('Sunday', 'nedeľa', 'sunday', 'The day after Saturday is ___.'),
+        W('Monday', 'pondelok', 'monday', 'The day after Sunday is ___.'),
+        W('Tuesday', 'utorok', 'tuesday', 'The day after Monday is ___.'),
+        W('Wednesday', 'streda', 'wednesday', 'The day after Tuesday is ___.'),
+        W('Thursday', 'štvrtok', 'thursday', 'The day after Wednesday is ___.'),
+        W('Friday', 'piatok', 'friday', 'The day after Thursday is ___.'),
+        W('Saturday', 'sobota', 'saturday', 'The day after Friday is ___.'),
+      ]},
+      { id: 'farby', name: 'Farby', words: [
+        W('red', 'červená', 'red', 'A tomato is ___.'),
+        W('yellow', 'žltá', 'yellow', 'A banana is ___.'),
+        W('pink', 'ružová', 'pink', 'A pig is ___.'),
+        W('green', 'zelená', 'green', 'Grass is ___.'),
+        W('purple', 'fialová', 'purple', 'Red and blue make ___.'),
+        W('orange', 'oranžová', 'orange', 'A carrot is ___.'),
+        W('blue', 'modrá', 'blue', 'The sky is ___.'),
+      ]},
+    ],
+  },
+  {
+    id: 2, title: 'Lekcia 2', name: "What's this?", book: 'Unit 1',
+    groups: [
+      { id: 'trieda', name: 'Školské veci', words: [
+        W('pen', 'pero', 'pen', 'My ___ has got blue ink.'),
+        W('rubber', 'guma', 'rubber', 'Oops, a mistake! I need a ___.'),
+        W('pencil', 'ceruzka', 'pencil', 'I sharpen my ___.'),
+        W('ruler', 'pravítko', 'ruler', 'I draw a straight line with a ___.'),
+        W('book', 'kniha', 'book', 'I read a ___.'),
+        W('bag', 'taška', 'bag', 'I carry my school ___ on my back.'),
+        W('folder', 'dosky na papiere', 'folder', 'I put my papers in a ___.', ['bag']),
+      ]},
+      { id: 'izba', name: 'V triede', words: [
+        W('door', 'dvere', 'door', 'Knock on the ___.'),
+        W('window', 'okno', 'window', 'Look out of the ___.', ['door']),
+        W('bookcase', 'knižnica', 'bookcase', 'A ___ has got shelves for books.'),
+      ]},
+      { id: 'abcd', name: 'Hlásky a, b, c, d', words: [
+        W('apple', 'jablko', 'apple', 'I eat an ___.', ['egg']),
+        W('bird', 'vták', 'bird', 'A ___ can fly.', ['kite']),
+        W('cat', 'mačka', 'cat', 'A ___ says meow.'),
+        W('dog', 'pes', 'dog', 'A ___ says woof.'),
+      ]},
+    ],
+  },
+  {
+    id: 3, title: 'Lekcia 3', name: 'Playtime!', book: 'Unit 2',
+    groups: [
+      { id: 'hracky', name: 'Hračky', words: [
+        W('doll', 'bábika', 'doll', 'My ___ has got long hair and a dress.'),
+        W('ball', 'lopta', 'ball', 'I kick the ___.'),
+        W('teddy', 'macko', 'teddy', 'My ___ is a little brown bear.'),
+        W('puzzle', 'skladačka (puzzle)', 'puzzle', 'I put the pieces of my ___ together.'),
+        W('car', 'autíčko', 'car', 'My toy ___ has got four wheels.'),
+        W('kite', 'šarkan', 'kite', 'My ___ flies in the wind.', ['bird']),
+        W('bike', 'bicykel', 'bike', 'My ___ has got two wheels and pedals.'),
+        W('train', 'vláčik', 'train', 'The ___ goes choo choo!'),
+        W('game', 'hra', 'game', 'I play a computer ___.'),
+        W('scooter', 'kolobežka', 'scooter', 'I stand on my ___ and push with one foot.'),
+      ]},
+      { id: 'efgh', name: 'Hlásky e, f, g, h', words: [
+        W('egg', 'vajíčko', 'egg', 'A hen lays an ___.', ['apple']),
+        W('fig', 'figa', 'fig', 'A ___ is a small purple fruit.'),
+        W('goat', 'koza', 'goat', 'A ___ has got horns and a beard.'),
+        W('hat', 'klobúk', 'hat', 'I wear a ___ on my head.'),
+      ]},
+    ],
+  },
+  {
+    id: 4, title: 'Lekcia 4', name: 'This is my nose!', book: 'Unit 3',
+    groups: [
+      { id: 'telo', name: 'Moje telo', words: [
+        W('arms', 'paže', 'arms', 'I wave my ___ in the air.', ['hands']),
+        W('nose', 'nos', 'nose', 'I smell with my ___.'),
+        W('face', 'tvár', 'face', 'I wash my ___ in the morning.', ['hands']),
+        W('legs', 'nohy', 'legs', 'I run with my ___.'),
+        W('ears', 'uši', 'ears', 'I hear with my ___.'),
+        W('fingers', 'prsty', 'fingers', 'I have got ten ___.'),
+        W('hands', 'ruky (dlane)', 'hands', 'I clap my ___.', ['arms', 'face']),
+        W('eyes', 'oči', 'eyes', 'I see with my ___.'),
+        W('eyebrows', 'obočie', 'eyebrows', 'My ___ are above my eyes.'),
+        W('shoulders', 'plecia', 'shoulders', 'I carry my bag on my ___.'),
+      ]},
+      { id: 'ijkl', name: 'Hlásky i, j, k, l', words: [
+        W('ink', 'atrament', 'ink', 'There is ___ in my pen.'),
+        W('jam', 'džem', 'jam', 'I like bread with strawberry ___.'),
+        W('lion', 'lev', 'lion', 'A ___ says roar.'),
+      ]},
+    ],
+  },
+];
+const SENT_SK = {"one": "Mám jeden nos.", "two": "Jeden a jeden sú dva.", "three": "Dva a jeden sú tri.", "four": "Dva a dva sú štyri.", "five": "Štyri a jeden je päť.", "six": "Tri a tri je šesť.", "seven": "Šesť a jeden je sedem.", "eight": "Štyri a štyri je osem.", "nine": "Osem a jeden je deväť.", "ten": "Päť a päť je desať.", "Sunday": "Deň po sobote je nedeľa.", "Monday": "Deň po nedeli je pondelok.", "Tuesday": "Deň po pondelku je utorok.", "Wednesday": "Deň po utorku je streda.", "Thursday": "Deň po strede je štvrtok.", "Friday": "Deň po štvrtku je piatok.", "Saturday": "Deň po piatku je sobota.", "red": "Paradajka je červená.", "yellow": "Banán je žltý.", "pink": "Prasiatko je ružové.", "green": "Tráva je zelená.", "purple": "Červená a modrá dajú fialovú.", "orange": "Mrkva je oranžová.", "blue": "Obloha je modrá.", "pen": "Moje pero má modrý atrament.", "rubber": "Ups, chyba! Potrebujem gumu.", "pencil": "Strúham si ceruzku.", "ruler": "Rovnú čiaru kreslím pravítkom.", "book": "Čítam knihu.", "bag": "Školskú tašku nosím na chrbte.", "folder": "Papiere si dávam do dosiek.", "door": "Zaklop na dvere.", "window": "Pozri sa von oknom.", "bookcase": "Knižnica má poličky na knihy.", "apple": "Jem jablko.", "bird": "Vták vie lietať.", "cat": "Mačka robí mňau.", "dog": "Pes robí haf.", "doll": "Moja bábika má dlhé vlasy a šaty.", "ball": "Kopnem do lopty.", "teddy": "Môj macko je malý hnedý medvedík.", "puzzle": "Skladám kúsky svojho puzzle.", "car": "Moje autíčko má štyri kolesá.", "kite": "Môj šarkan lieta vo vetre.", "bike": "Môj bicykel má dve kolesá a pedále.", "train": "Vláčik robí š-š-š, tú-tú!", "game": "Hrám počítačovú hru.", "scooter": "Stojím na kolobežke a odrážam sa jednou nohou.", "egg": "Sliepka znesie vajíčko.", "fig": "Figa je malé fialové ovocie.", "goat": "Koza má rohy a bradu.", "hat": "Na hlave nosím klobúk.", "arms": "Mávam pažami vo vzduchu.", "nose": "Nosom cítim vône.", "face": "Ráno si umývam tvár.", "legs": "Behám nohami.", "ears": "Ušami počujem.", "fingers": "Mám desať prstov.", "hands": "Tlieskam rukami.", "eyes": "Očami vidím.", "eyebrows": "Obočie mám nad očami.", "shoulders": "Tašku nosím na pleciach.", "ink": "V pere mám atrament.", "jam": "Mám rád chlieb s jahodovým džemom.", "lion": "Lev robí rrr."};
+LESSONS.forEach(l => l.groups.forEach(g => g.words.forEach(w => { w.group = g.id; w.lesson = l.id; w.sentSk = SENT_SK[w.en] || ''; })));
+const lessonWords = (l) => l.groups.flatMap(g => g.words);
+const lessonById = (id) => LESSONS.find(l => l.id === id);
+
+/* ---------------- odomykanie ---------------- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('slovickovo:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('slovickovo:' + k, JSON.stringify(v)); } catch (e) {} },
+};
+function unlockedIds() {
+  const central = CONFIG.unlockMode === 'parent' ? [] : CONFIG.unlocked;
+  const own = CONFIG.unlockMode === 'central' ? [] : store.get('unlocked', []);
+  return LESSONS.map(l => l.id).filter(id => central.includes(id) || own.includes(id));
+}
+const isUnlocked = (id) => unlockedIds().includes(id);
+
+/* ---------------- pomocné ---------------- */
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+let rand = Math.random;
+const shuffle = (arr, r = rand) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const norm = (s) => s.trim().toLowerCase().replace(/\s+/g, ' ');
+const sentHTML = (w, fill) => esc(w.sent).replace(/___(\S*)/, (m, tail) => `<span style="white-space:nowrap">${fill}${tail}</span>`);
+function others(w, pool, n, r = rand) {
+  const ok = pool.filter(o => o !== w && !w.avoid.includes(o.en) && !o.avoid.includes(w.en));
+  const same = shuffle(ok.filter(o => o.group === w.group), r);
+  const rest = shuffle(ok.filter(o => o.group !== w.group), r);
+  return same.concat(rest).slice(0, n);
+}
+function hidePattern(word, r = rand) {
+  const idx = [...word].map((c, i) => i).filter(i => /[a-z]/i.test(word[i]));
+  const count = Math.max(1, Math.min(idx.length - 1, Math.round(word.length * 0.4)));
+  const choose = shuffle(idx.length > 3 ? idx.slice(1) : idx, r).slice(0, count);
+  return [...word].map((c, i) => choose.includes(i) ? null : c);
+}
+const canSpeak = 'speechSynthesis' in window;
+/* Hovoríme len anglickým hlasom. Ak ho zariadenie nemá, reproduktory sa skryjú (inak by angličtinu čítal slovenský hlas). */
+let enVoice = null;
+function pickVoice() {
+  try {
+    const vs = speechSynthesis.getVoices();
+    const en = vs.filter(v => /^en[-_]/i.test(v.lang));
+    enVoice = en.find(v => /en[-_]GB/i.test(v.lang) && /google|natural|online|daniel|serena|kate|libby|sonia|ryan/i.test(v.name))
+      || en.find(v => /en[-_]GB/i.test(v.lang)) || en.find(v => /en[-_]US/i.test(v.lang)) || en[0] || null;
+  } catch (e) { enVoice = null; }
+  document.documentElement.classList.toggle('has-voice', !!enVoice);
+}
+if (canSpeak) { pickVoice(); try { speechSynthesis.addEventListener('voiceschanged', pickVoice); } catch (e) {} }
+function speak(text) {
+  if (!enVoice) return;
+  try {
+    const s = window.speechSynthesis; s.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.voice = enVoice; u.lang = enVoice.lang; u.rate = 0.85;
+    s.speak(u);
+  } catch (e) {}
+}
+/* krátke zvuky: tadá pri správnej odpovedi, dong pri chybe */
+let actx = null;
+function ac() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); return actx; } catch (e) { return null; } }
+function tone(freq, start, dur, type = 'triangle', vol = 0.22) {
+  const c = ac(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + start;
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+const SFX = {
+  good() { [523, 659, 784].forEach((f, i) => tone(f, i * 0.08, 0.16)); tone(1047, 0.24, 0.55); tone(784, 0.24, 0.55, 'sine', 0.1); },
+  bad() { tone(165, 0, 0.7, 'sine', 0.35); tone(110, 0, 0.7, 'triangle', 0.18); },
+  pair() { tone(880, 0, 0.12); tone(1319, 0.07, 0.22); },
+};
+const sfx = (name) => { if (!store.get('mute', false)) try { SFX[name](); } catch (e) {} };
+const speakBtn = (word) => canSpeak ? `<button class="speak" data-say="${esc(word)}" aria-label="Vypočuť: ${esc(word)}" title="Vypočuť">${SPEAKER}</button>` : '';
+
+const EXERCISES = [
+  { kind: 'write', n: 1, title: 'Napíš slovo', desc: 'Podľa obrázka a slovenského slova', count: 10 },
+  { kind: 'letters', n: 2, title: 'Doplň písmenká', desc: 'Niektoré písmenká chýbajú', count: 10 },
+  { kind: 'match', n: 3, title: 'Priraď slovo k obrázku', desc: '8 slov a 8 obrázkov, ťukni na slovo a potom na obrázok', count: 16 },
+  { kind: 'sentence', n: 4, title: 'Doplň slovo do vety', desc: 'Vyber slovo, ktoré patrí do vety', count: 10 },
+  { kind: 'which', n: 5, title: 'Priraď slovo k vete', desc: 'Ktorá veta patrí k slovu?', count: 8 },
+];
+const pdfName = (kind, lessonId) => kind === 'summary' ? 'listy/suhrnny-test.pdf' : `listy/lekcia-${lessonId}-${kind === 'test' ? 'test' : 'cvicenie-' + EXERCISES.find(e => e.kind === kind).n}.pdf`;
+const printLink = (kind, lessonId) => `<button class="printlink" data-pdf="${pdfName(kind, lessonId)}" title="Stiahnuť pracovný list A4 s riešením (PDF)">Tlačiť</button>`;
+
+/* ---------------- obrazovky ---------------- */
+const app = document.getElementById('app');
+const state = { view: 'home', lessonId: null, group: 'all', run: null };
+function render() {
+  try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {}
+  if (gameStop) { gameStop(); gameStop = null; }
+  if (!curProfile() && !['who', 'parents'].includes(state.view)) state.view = 'who';
+  ({ home, lesson, words, run: runView, result, parents, me, diploma, who, games, play })[state.view]();
+  window.scrollTo(0, 0);
+}
+function go(view, extra = {}) { Object.assign(state, { view }, extra); render(); }
+const topbar = (title, back = 'home', backLabel = 'Späť') => `<div class="topbar"><button class="back" data-go="${back}">← ${backLabel}</button><h2 class="grow">${title}</h2></div>`;
+
+function home() {
+  const unl = unlockedIds();
+  const cards = LESSONS.map(l => {
+    const open = unl.includes(l.id);
+    const lw = lessonWords(l); const sample = [0, 1, 2, 3, 4].map(i => lw[Math.floor(i * lw.length / 5)].pic);
+    return `<button class="lesson ${open ? '' : 'locked'}" ${open ? `data-lesson="${l.id}"` : 'disabled'}>
+      <span class="num">${l.id}</span>
+      <span><h3>${l.title}: ${esc(l.name)}</h3><span class="muted">${esc(l.book)} · ${open ? lessonWords(l).length + ' slovíčok' : 'zatiaľ zamknutá'}</span>
+      ${open ? `<span class="pics">${sample.map(k => picHTML(k)).join('')}</span>` : ''}</span></button>`;
+  }).join('');
+  app.innerHTML = `
+    <div class="brand">${LOGO}<h1>Slovíčkovo<small>Angličtina pre 2. ročník</small></h1></div>
+    ${meCard()}
+    <div class="card"><h3>Vyber si lekciu</h3>${cards}<p class="muted">Zamknuté lekcie sa otvoria, keď sa k nim trieda dostane.</p></div>
+    <div class="card"><h3>Súhrnný test</h3><p class="muted">Slovíčka zo všetkých odomknutých lekcií spolu.</p>
+      <div class="row"><button class="big alt" data-test="summary" ${unl.length ? '' : 'disabled'}>Spustiť súhrnný test</button>${unl.length ? printLink('summary') : ''}</div></div>
+    <footer class="foot"><button data-go="parents">Pre rodičov</button></footer>`;
+}
+
+function poolFor(l) { const all = lessonWords(l); return state.group === 'all' ? all : all.filter(w => w.group === state.group); }
+function lesson() {
+  const l = lessonById(state.lessonId);
+  const chips = [{ id: 'all', name: 'Všetko' }, ...l.groups].map(g => `<button class="chip" data-group="${g.id}" aria-pressed="${state.group === g.id}">${esc(g.name)}</button>`).join('');
+  const ex = EXERCISES.map(e => `<div class="ex"><span class="n">${e.n}</span><button class="go" data-ex="${e.kind}"><strong>${e.title}</strong><span>${e.desc}</span></button>${printLink(e.kind, l.id)}</div>`).join('');
+  app.innerHTML = `${topbar(`${l.title}: ${esc(l.name)}`)}
+    <div class="card"><h3>Čo si chceš precvičiť?</h3><div class="chips">${chips}</div>
+      <button class="big ghost" data-go="words">Pozrieť slovíčka (${poolFor(l).length})</button></div>
+    <div class="exlist">${ex}
+      <div class="ex test"><span class="n">T</span><button class="go" data-test="lesson"><strong>Test z lekcie</strong><span>16 otázok zo všetkých slovíčok lekcie</span></button>${printLink('test', l.id)}</div></div>`;
+}
+
+function words() {
+  const l = lessonById(state.lessonId);
+  app.innerHTML = `${topbar('Slovíčka', 'lesson')}
+    <p class="muted"><span class="voice-on">Ťukni na kartičku a vypočuj si, ako sa slovo vyslovuje po anglicky.</span><span class="voice-off">Prezri si slovíčka a ich preklad.</span></p>
+    <div class="flash">${poolFor(l).map(w => `<button data-say="${esc(w.en)}">${picHTML(w.pic)}<span class="en">${esc(w.en)}</span><span class="sk">${esc(w.sk)}</span></button>`).join('')}</div>`;
+}
+
+/* ---------------- kto cvičí (profily len v tomto zariadení) ---------------- */
+const AVATARS = ['cat', 'dog', 'bird', 'lion', 'goat', 'teddy'];
+const AV_SK = { cat: 'Mačička', dog: 'Psík', bird: 'Vtáčik', lion: 'Levík', goat: 'Kozička', teddy: 'Macko' };
+const profiles = () => store.get('profiles', []);
+const curId = () => store.get('current', null);
+const curProfile = () => profiles().find(p => p.id === curId()) || null;
+const profLabel = (p) => p ? (p.nick || AV_SK[p.animal]) : '';
+const pk = (k) => 'p' + (curId() || 0) + ':' + k;
+const pget = (k, d) => store.get(pk(k), d), pset = (k, v) => store.set(pk(k), v);
+(function migrate() {
+  if (profiles().length || store.get('stars', null) === null) return;
+  store.set('profiles', [{ id: 1, animal: 'cat', nick: '' }]); store.set('current', 1);
+  ['stars', 'streak', 'tests'].forEach(k => { const v = store.get(k, null); if (v !== null) store.set('p1:' + k, v); });
+  try { ['stars', 'streak', 'tests', 'name'].forEach(k => localStorage.removeItem('slovickovo:' + k)); } catch (e) {}
+})();
+const avHTML = (p) => p && p.photo ? `<span class="pic avphoto"><img src="${p.photo}" alt=""></span>` : picHTML(p ? p.animal : 'cat');
+function updateProfile(patch) { const ps = profiles(); const pr = ps.find(x => x.id === curId()); if (!pr) return; Object.assign(pr, patch); store.set('profiles', ps); }
+function shrinkImage(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onerror = reject;
+    r.onload = () => { const img = new Image(); img.onerror = reject; img.onload = () => {
+      const S = 160, c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d');
+      const m = Math.min(img.width, img.height); x.fillStyle = '#fff'; x.fillRect(0, 0, S, S);
+      x.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S);
+      resolve(c.toDataURL('image/jpeg', 0.8)); }; img.src = r.result; };
+    r.readAsDataURL(file);
+  });
+}
+function who() {
+  const ps = profiles(); const used = ps.map(p => p.animal); const free = AVATARS.filter(a => !used.includes(a));
+  app.innerHTML = `<div class="brand">${LOGO}<h1>Slovíčkovo<small>Angličtina pre 2. ročník</small></h1></div>
+    ${ps.length ? `<div class="card"><h2>Kto cvičí?</h2><div class="who">${ps.map(p => `<button class="whobtn ${p.id === curId() ? 'cur' : ''}" data-profile="${p.id}">${avHTML(p)}<strong>${esc(profLabel(p))}</strong><span class="muted">${store.get('p' + p.id + ':stars', 0)} ★</span></button>`).join('')}</div></div>` : ''}
+    ${free.length && ps.length < 4 ? `<div class="card"><h3>${ps.length ? 'Pridať ďalšie dieťa' : 'Ahoj! Vyber si svoje zvieratko'}</h3>
+      <label for="nick" class="muted">Prezývka (nemusíš vypĺňať, stačí zvieratko)</label>
+      <input id="nick" class="answer-input" style="font-size:1.3rem;text-align:left" maxlength="20" autocomplete="off" placeholder="napr. Rýchla raketa">
+      <div class="who">${free.map(a => `<button class="whobtn" data-newav="${a}">${picHTML(a)}<strong>${AV_SK[a]}</strong></button>`).join('')}</div></div>` : ''}
+    <div class="note">Nikde sa nezadáva meno ani iné údaje. Zvieratko a hviezdičky sa ukladajú len v tomto zariadení.</div>
+    <footer class="foot"><button data-go="parents">Pre rodičov</button></footer>`;
+}
+function addProfile(animal) {
+  const ps = profiles(); const id = ps.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+  const nick = (document.getElementById('nick')?.value || '').trim().slice(0, 20);
+  ps.push({ id, animal, nick }); store.set('profiles', ps); store.set('current', id); go('home');
+}
+function deleteProfile() {
+  const id = curId(); store.set('profiles', profiles().filter(p => p.id !== id));
+  try { ['stars', 'streak', 'tests', 'spent', 'stats', 'known', 'badges'].forEach(k => localStorage.removeItem('slovickovo:p' + id + ':' + k)); } catch (e) {}
+  store.set('current', null); go('who');
+}
+
+/* ---------------- hviezdičky, úrovne, nálepky ---------------- */
+const STAR_SM = `<span class="star-sm">${svg('<path d="M50 10l12 25 27 3-20 19 6 27-25-14-25 14 6-27-20-19 27-3z" fill="#FFB81C" stroke="#C98500" stroke-width="5"/>')}</span>`;
+const LEVELS = [[0, 'Malý objaviteľ'], [60, 'Slovíčkový prieskumník'], [150, 'Anglický kamarát'], [300, 'Majster slovíčok'], [500, 'Hviezda angličtiny']];
+const STICKERS = [[10, 'cat'], [25, 'dog'], [45, 'bird'], [70, 'teddy'], [100, 'kite'], [135, 'ball'], [175, 'train'], [220, 'lion'], [270, 'goat'], [330, 'car'], [400, 'doll'], [480, 'apple']];
+const HINT_COST = 5;
+const wallet = () => Math.max(0, pget('stars', 0) - pget('spent', 0));
+function levelOf(n) {
+  let i = 0; LEVELS.forEach((l, k) => { if (n >= l[0]) i = k; });
+  return { name: LEVELS[i][1], index: i, from: LEVELS[i][0], next: LEVELS[i + 1] ? LEVELS[i + 1][0] : null, nextName: LEVELS[i + 1] ? LEVELS[i + 1][1] : null };
+}
+const dayKey = (d) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+function touchStreak() {
+  const s = pget('streak', { last: '', count: 0 }); const t = dayKey(new Date());
+  if (s.last === t) return;
+  s.count = s.last === dayKey(new Date(Date.now() - 864e5)) ? s.count + 1 : 1; s.last = t; s.best = Math.max(s.best || 0, s.count); pset('streak', s);
+}
+function streakNow() { const s = pget('streak', { last: '', count: 0 }); return s.last === dayKey(new Date()) || s.last === dayKey(new Date(Date.now() - 864e5)) ? s.count : 0; }
+function addStars(n) {
+  const before = pget('stars', 0), after = before + n; pset('stars', after); touchStreak();
+  return STICKERS.filter(([t]) => before < t && after >= t);
+}
+const STATS0 = { ex: 0, tests: 0, perfect: 0, correct: 0 };
+const stats = () => Object.assign({}, STATS0, pget('stats', {}));
+const KNOWN_AT = 3;
+const knownWords = () => Object.values(pget('known', {})).filter(c => c >= KNOWN_AT).length;
+const bestStreak = () => Math.max(pget('streak', {}).best || 0, streakNow());
+function track(results) {
+  const ok = results.filter(x => x.ok && x.w); if (!ok.length) return;
+  const k = pget('known', {}); ok.forEach(x => { k[x.w.en] = (k[x.w.en] || 0) + 1; }); pset('known', k);
+  const st = stats(); st.correct += ok.length; pset('stats', st);
+}
+const STARPATH = 'M50 10l12 25 27 3-20 19 6 27-25-14-25 14 6-27-20-19 27-3z';
+const medal = (color, inner) => `<path d="M34 6h14l6 30H40zM52 6h14l-6 30H46z" fill="#2F7BE0"/><path d="M48 6h4l2 30h-8z" fill="#E5443B" stroke="none"/><circle cx="50" cy="62" r="30" fill="${color}"/><circle cx="50" cy="62" r="23" fill="#FFFDF5"/><g transform="translate(31 43) scale(.38)">${inner}</g>`;
+const GOLD = '#FFB81C', SILVER = '#B8C4D6', BRONZE = '#D98B4A';
+const BADGES = [
+  ['first', 'Prvý krok', 'Dokonči prvé cvičenie', (s) => s.ex >= 1, BRONZE, 'one'],
+  ['ex10', 'Usilovná včielka', 'Dokonči 10 cvičení', (s) => s.ex >= 10, SILVER, 'pencil'],
+  ['ex30', 'Cvičiaci šampión', 'Dokonči 30 cvičení', (s) => s.ex >= 30, GOLD, 'book'],
+  ['test1', 'Odvážny testovač', 'Urob prvý test', (s) => s.tests >= 1, BRONZE, 'pen'],
+  ['perfect', 'Bez chyby', 'Cvičenie alebo test bez jedinej chyby', (s) => s.perfect >= 1, SILVER, '*'],
+  ['perfect5', 'Päťkrát bez chyby', '5-krát všetko správne', (s) => s.perfect >= 5, GOLD, '*'],
+  ['c50', '50 správnych', '50 správnych odpovedí', (s) => s.correct >= 50, BRONZE, 'apple'],
+  ['c200', '200 správnych', '200 správnych odpovedí', (s) => s.correct >= 200, GOLD, 'kite'],
+  ['st3', 'Tri dni v rade', 'Cvič 3 dni po sebe', (s) => s.best >= 3, SILVER, 'three'],
+  ['st7', 'Celý týždeň', 'Cvič 7 dní po sebe', (s) => s.best >= 7, GOLD, 'seven'],
+  ['w20', 'Zberateľ slov', 'Nauč sa 20 slovíčok', (s) => s.known >= 20, SILVER, 'bag'],
+  ['w50', 'Chodiaci slovník', 'Nauč sa 50 slovíčok', (s) => s.known >= 50, GOLD, 'bookcase'],
+];
+const badgeInner = (k) => k === '*' ? `<path d="${STARPATH}" fill="#FFB81C" stroke="#C98500" stroke-width="5"/>` : (PICS[k] || '');
+const badgeSVG = (b) => svg(medal(b[4], badgeInner(b[5])));
+const fullStats = () => Object.assign(stats(), { best: bestStreak(), known: knownWords() });
+const earnedBadges = () => { const s = fullStats(); return BADGES.filter(b => b[3](s)); };
+function newBadges() {
+  const seen = pget('badges', []); const now = earnedBadges(); const fresh = now.filter(b => !seen.includes(b[0]));
+  if (fresh.length) pset('badges', now.map(b => b[0]));
+  return fresh;
+}
+const TROPHY = svg('<path d="M30 14h40v22a20 20 0 0 1-40 0z" fill="#FFB81C"/><path d="M30 20H16q0 20 16 22M70 20h14q0 20-16 22" stroke-width="5"/><path d="M44 56h12v14H44z" fill="#C98500"/><rect x="30" y="70" width="40" height="14" rx="3" fill="#2F7BE0"/><path d="M50 22l3 7 7 .6-5.4 4.6 1.7 7-6.3-3.9-6.3 3.9 1.7-7-5.4-4.6 7-.6z" fill="#FFF6D6" stroke="none"/>');
+function meCard() {
+  const n = pget('stars', 0), lv = levelOf(n), got = STICKERS.filter(([t]) => n >= t).length, p = curProfile();
+  const nb = earnedBadges().length, sn = streakNow();
+  return `<div class="mecard achcard"><div class="achtop"><button class="mecard-main" data-go="me">${avHTML(p)}<span class="grow"><strong class="mename">${esc(profLabel(p))}</strong><span class="muted">${esc(lv.name)}</span></span><span class="wallet" title="Hviezdičky na nápovedy"><strong class="mestars">${wallet()}</strong>${STAR_SM}</span></button><button class="chip" data-go="who">Zmeniť</button></div>
+    <button class="achbtn" data-go="me"><span class="achicon">${TROPHY}</span><span class="grow"><strong>Moje úspechy</strong><span class="achstats">
+      <span><b>${got}</b>/${STICKERS.length} nálepiek</span><span><b>${nb}</b>/${BADGES.length} odmien</span><span><b>${sn}</b> ${sn === 1 ? 'deň' : sn > 1 && sn < 5 ? 'dni' : 'dní'} v rade</span></span></span><span class="go-arrow">›</span></button>${gamesCard()}</div>`;
+}
+function levelBar(n) {
+  const lv = levelOf(n);
+  if (lv.next === null) return '<p>Dosiahol si najvyššiu úroveň. Si hviezda!</p>';
+  const pct = Math.round((n - lv.from) / (lv.next - lv.from) * 100);
+  return `<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><div style="width:${pct}%;background:var(--accent)"></div></div>
+    <p class="muted">Do úrovne <strong>${esc(lv.nextName)}</strong> ti chýba ${lv.next - n} hviezdičiek.</p>`;
+}
+function me() {
+  const n = pget('stars', 0), lv = levelOf(n), st = streakNow(), S = fullStats(), p = curProfile();
+  const eb = earnedBadges().map(b => b[0]); const gotSt = STICKERS.filter(([t]) => n >= t).length;
+  const unlockedWords = unlockedIds().flatMap(id => lessonWords(lessonById(id))).length;
+  const tile = (v, label, cls = '') => `<div class="stat ${cls}"><b>${v}</b><span>${label}</span></div>`;
+  app.innerHTML = `${topbar('Moje úspechy')}
+    <div class="card achhead"><div class="earned-row">${avHTML(p)}<div class="grow"><h2>${esc(profLabel(p))}</h2><p class="dip-level small">Úroveň ${lv.index + 1}: ${esc(lv.name)}</p></div></div>
+      ${levelBar(n)}</div>
+    <div class="card"><h3>Moja štatistika</h3>
+      <div class="stats">
+        ${tile(n, 'získaných hviezdičiek', 'gold')}${tile(wallet(), 'na nápovedy')}
+        ${tile(`${gotSt}/${STICKERS.length}`, 'nálepiek')}${tile(`${eb.length}/${BADGES.length}`, 'odmien')}
+        ${tile(S.ex, 'cvičení')}${tile(S.tests, 'testov')}
+        ${tile(S.correct, 'správnych odpovedí')}${tile(S.perfect, 'krát bez chyby')}
+        ${tile(`${S.known}/${unlockedWords}`, 'naučených slovíčok')}${tile(st, `${st === 1 ? 'deň' : st > 1 && st < 5 ? 'dni' : 'dní'} v rade (rekord ${S.best})`)}
+      </div>
+      <p class="muted">${st ? `Cvičíš ${st} ${st === 1 ? 'deň' : st < 5 ? 'dni' : 'dní'} po sebe. Príď aj zajtra!` : 'Dnes si ešte necvičil(a). Stačí jedno cvičenie a začne sa ti počítať séria dní.'} Slovíčko je naučené, keď ho napíšeš alebo vyberieš správne aspoň ${KNOWN_AT}-krát.</p></div>
+    <div class="card"><h3>Odmeny</h3><p class="muted">Medaily za snahu. Ťukni na sivú a uvidíš, čo treba urobiť.</p>
+      <div class="badges">${BADGES.map(b => `<button class="badge ${eb.includes(b[0]) ? '' : 'locked'}" data-badge="${b[0]}">${badgeSVG(b)}<strong>${esc(b[1])}</strong></button>`).join('')}</div></div>
+    <div class="card"><h3>Album nálepiek</h3><p class="muted">Za hviezdičky dostávaš nálepky. Sivé ešte čakajú.</p>
+      <div class="album">${STICKERS.map(([t, k]) => `<div class="sticker ${n >= t ? '' : 'locked'}">${picHTML(k)}<span>${n >= t ? '✓' : t + ' ★'}</span></div>`).join('')}</div></div>
+    <button class="big alt dipbtn" data-go="diploma">${STAR(true)} Môj diplom</button>
+    <div class="card"><h3>Upraviť profil</h3>
+      <label for="nick"><strong>Prezývka</strong> <span class="muted">(nemusíš)</span></label>
+      <input id="nick" class="answer-input" style="font-size:1.3rem;text-align:left" maxlength="20" autocomplete="off" placeholder="Prezývka" value="${esc(p.nick)}">
+      <strong>Obrázok</strong>
+      <div class="avpick">${AVATARS.map(a => `<button class="avopt ${!p.photo && p.animal === a ? 'cur' : ''}" data-setav="${a}" aria-label="${AV_SK[a]}">${picHTML(a)}</button>`).join('')}
+        <label class="avopt upload ${p.photo ? 'cur' : ''}" for="avfile">${p.photo ? `<span class="pic"><img src="${p.photo}" alt=""></span>` : '<span class="plusbig">+</span>'}<span>Vlastný</span></label>
+        <input type="file" id="avfile" accept="image/*" hidden></div>
+      <p class="muted">Vlastný obrázok (napríklad kresbu) appka zmenší a uloží len v tomto zariadení. Nikam sa neposiela. Fotku dieťaťa nie je potrebné dávať, stačí obrázok.</p>
+      <p class="muted">Nápoveda stojí ${HINT_COST} hviezdičiek. Úrovne, nálepky a odmeny sa počítajú zo všetkých získaných hviezdičiek, míňaním o ne neprídeš.</p></div>
+    <div class="row"><button class="big ghost" data-go="who">Zmeniť, kto cvičí</button></div>
+    <footer class="foot"><button id="delprof">Vymazať tento profil</button></footer>`;
+  app.querySelectorAll('[data-badge]').forEach(b => b.addEventListener('click', () => { const x = BADGES.find(y => y[0] === b.dataset.badge); toast(`${x[1]}: ${x[2]}${eb.includes(x[0]) ? '. Už ju máš!' : ''}`); }));
+  app.querySelectorAll('[data-setav]').forEach(b => b.addEventListener('click', () => { updateProfile({ animal: b.dataset.setav, photo: '' }); me(); }));
+  document.getElementById('avfile').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) shrinkImage(f).then(url => { updateProfile({ photo: url }); me(); }).catch(() => toast('Tento obrázok sa nepodarilo načítať. Skús iný.')); });
+  const inp = document.getElementById('nick'); inp.addEventListener('input', () => { const ps = profiles(); const pr = ps.find(x => x.id === curId()); pr.nick = inp.value.trim().slice(0, 20); store.set('profiles', ps); });
+  const del = document.getElementById('delprof'); del.onclick = () => { if (del.dataset.armed) return deleteProfile(); del.dataset.armed = '1'; del.textContent = 'Naozaj vymazať? Hviezdičky sa stratia. Ťukni znova.'; };
+}
+function diploma() {
+  const n = pget('stars', 0), lv = levelOf(n), name = profLabel(curProfile());
+  const got = STICKERS.filter(([t]) => n >= t);
+  app.innerHTML = `${topbar('Diplom', 'me')}
+    <div class="diploma">
+      <div class="dip-avatar">${avHTML(curProfile())}</div>
+      <p class="dip-label">DIPLOM</p>
+      <p class="dip-name">${esc(name)}</p>
+      <p>sa učí angličtinu so Slovíčkovom a má</p>
+      <div class="earned-row" style="justify-content:center">${STAR(true)}<p class="score">${n}</p></div>
+      <p>hviezdičiek</p>
+      <p class="dip-level">${esc(lv.name)}</p>
+      <p><strong>${earnedBadges().length}</strong> odmien · <strong>${got.length}</strong> nálepiek · <strong>${knownWords()}</strong> naučených slovíčok</p>
+      ${earnedBadges().length ? `<div class="badges dip-badges">${earnedBadges().map(b => `<div class="badge">${badgeSVG(b)}</div>`).join('')}</div>` : ''}
+      ${got.length ? `<div class="album dip-album">${got.map(([t, k]) => `<div class="sticker">${picHTML(k)}</div>`).join('')}</div>` : ''}
+      <p class="muted">${new Date().toLocaleDateString('sk-SK')}${streakNow() > 1 ? ` · ${streakNow()} dní v rade` : ''}</p>
+    </div>
+    <div class="card"><h3>Pochváľ sa!</h3>
+      <div class="row"><button class="big" id="dipprint">Vytlačiť (PDF)</button><button class="big alt" id="dippng">Uložiť obrázok</button>${canShareFiles() ? '<button class="big ghost" id="dipshare">Poslať</button>' : ''}</div>
+      <p class="muted">PDF si rodič vytlačí. Obrázok môžeš poslať babke, dedkovi alebo kamarátom. Alebo si urob snímku obrazovky.</p></div>`;
+  document.getElementById('dipprint').onclick = () => saveDiploma('pdf');
+  document.getElementById('dippng').onclick = () => saveDiploma('png');
+  const sh = document.getElementById('dipshare'); if (sh) sh.onclick = () => saveDiploma('share');
+}
+
+/* --- diplom ako obrázok / PDF (kreslí sa v zariadení, nikam sa neposiela) --- */
+function canShareFiles() { try { return !!(navigator.canShare && navigator.canShare({ files: [new File(['x'], 'x.png', { type: 'image/png' })] })); } catch (e) { return false; } }
+const loadImg = (src) => new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = src; });
+const svgImg = (markup) => loadImg('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" ')));
+async function diplomaCanvas() {
+  const W = 1240, H = 1754, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  const n = pget('stars', 0), lv = levelOf(n), p = curProfile(), got = STICKERS.filter(([t]) => n >= t), eb = earnedBadges();
+  const D = '"Baloo 2", "Trebuchet MS", sans-serif', B = 'Andika, "Trebuchet MS", sans-serif';
+  try { await Promise.all(['800 160px "Baloo 2"', '600 60px "Baloo 2"', '400 40px Andika', '700 40px Andika'].map(f => document.fonts.load(f))); } catch (e) {}
+  g.fillStyle = '#FFF8E6'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = '#FFB81C'; g.lineWidth = 18; g.strokeRect(40, 40, W - 80, H - 80); g.lineWidth = 6; g.strokeRect(78, 78, W - 156, H - 156);
+  const starImg = await svgImg(STAR(true));
+  const star = (x, y, sz) => g.drawImage(starImg, x, y, sz, sz);
+  for (const [x, y] of [[100, 100], [W - 190, 100], [100, H - 190], [W - 190, H - 190]]) star(x, y, 90);
+  const center = (txt, y, font, color = '#2B2B3A') => { g.font = font; g.fillStyle = color; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillText(txt, W / 2, y, W - 260); };
+  const ax = W / 2, ay = 290, ar = 130;
+  g.save(); g.beginPath(); g.arc(ax, ay, ar, 0, Math.PI * 2); g.fillStyle = '#FFFFFF'; g.fill(); g.clip();
+  const av = p.photo ? await loadImg(p.photo) : await svgImg(svg(PICS[p.animal] || ''));
+  if (p.photo) { const sc = Math.max(2 * ar / av.width, 2 * ar / av.height); g.drawImage(av, ax - av.width * sc / 2, ay - av.height * sc / 2, av.width * sc, av.height * sc); }
+  else g.drawImage(av, ax - ar * .85, ay - ar * .85, ar * 1.7, ar * 1.7);
+  g.restore(); g.beginPath(); g.arc(ax, ay, ar, 0, Math.PI * 2); g.strokeStyle = '#FFB81C'; g.lineWidth = 10; g.stroke();
+  center('DIPLOM', 600, `800 170px ${D}`, '#2763D6');
+  center(profLabel(p), 740, `800 110px ${D}`);
+  center('sa učí angličtinu so Slovíčkovom a má', 830, `400 46px ${B}`);
+  g.font = `800 130px ${D}`; const nw = g.measureText(String(n)).width; const sx = W / 2 - (nw + 140) / 2;
+  star(sx, 860, 120); g.fillStyle = '#2B2B3A'; g.textAlign = 'left'; g.fillText(String(n), sx + 140, 970);
+  center('hviezdičiek', 1040, `400 46px ${B}`);
+  g.font = `600 60px ${D}`; const lw = g.measureText(lv.name).width + 80; g.fillStyle = '#FFB81C';
+  g.beginPath(); g.roundRect(W / 2 - lw / 2, 1075, lw, 92, 46); g.fill(); center(lv.name, 1140, `600 60px ${D}`, '#1C2840');
+  center(`${eb.length} odmien · ${got.length} nálepiek · ${knownWords()} naučených slovíčok`, 1240, `700 40px ${B}`);
+  let y = 1280;
+  const row = async (items, size) => { const gap = 14, per = Math.floor((W - 260) / (size + gap)); for (let r = 0; r * per < items.length; r++) { const part = items.slice(r * per, r * per + per); const x0 = W / 2 - (part.length * (size + gap) - gap) / 2; for (let k = 0; k < part.length; k++) g.drawImage(await svgImg(part[k]), x0 + k * (size + gap), y, size, size); y += size + gap; } y += 16; };
+  if (eb.length) await row(eb.map(badgeSVG), 104);
+  if (got.length) await row(got.map(([t, k]) => svg(PICS[k])), 80);
+  center(new Date().toLocaleDateString('sk-SK') + (bestStreak() > 1 ? ` · najdlhšia séria ${bestStreak()} dní` : ''), H - 120, `400 36px ${B}`, '#5A6275');
+  return c;
+}
+function jpegToPdf(jpeg, w, h) {
+  // jednostranové PDF (A4) s jedným JPEG obrázkom
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
+  const add = (x) => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
+  const obj = (i, body) => { offs[i] = len; add(`${i} 0 obj\n`); body(); add('\nendobj\n'); };
+  const content = 'q 595.28 0 0 841.89 0 0 cm /Im0 Do Q';
+  add('%PDF-1.4\n');
+  obj(1, () => add('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2, () => add('<< /Type /Pages /Kids [3 0 R] /Count 1 >>'));
+  obj(3, () => add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>'));
+  obj(4, () => { add(`<< /Type /XObject /Subtype /Image /Width ${w} /Height ${h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`); add(jpeg); add('\nendstream'); });
+  obj(5, () => add(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`));
+  const xref = len; add(`xref\n0 6\n0000000000 65535 f \n${offs.slice(1).map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('')}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  return new Blob(parts, { type: 'application/pdf' });
+}
+async function saveDiploma(kind) {
+  toast('Pripravujem diplom…');
+  let c; try { c = await diplomaCanvas(); } catch (e) { return toast('Diplom sa nepodarilo pripraviť. Urob si snímku obrazovky.'); }
+  const blobOf = (type, q) => new Promise(ok => c.toBlob(ok, type, q));
+  const name = 'diplom-slovickovo';
+  if (kind === 'share') {
+    const png = await blobOf('image/png');
+    try { await navigator.share({ files: [new File([png], name + '.png', { type: 'image/png' })], title: 'Môj diplom zo Slovíčkova' }); toastEl.hidden = true; }
+    catch (e) { if (e && e.name === 'AbortError') toastEl.hidden = true; else saveDiploma('png'); }
+    return;
+  }
+  const data = kind === 'pdf' ? jpegToPdf(new Uint8Array(await (await blobOf('image/jpeg', .92)).arrayBuffer()), c.width, c.height) : await blobOf('image/png');
+  window.__lastDiploma = data;
+  const dl = await downloadsP;
+  if (!dl) { if (!WEB) return toast('Ukladanie tu nie je dostupné. Urob si snímku obrazovky.'); const u = URL.createObjectURL(data); saveLocal(u, `${name}.${kind}`); setTimeout(() => URL.revokeObjectURL(u), 60000); return toast(kind === 'pdf' ? 'Diplom je pripravený. Vytlač ho.' : 'Obrázok diplomu je pripravený.'); }
+  try { await dl.save({ filename: `${name}.${kind}`, data }); toast(kind === 'pdf' ? 'Diplom je uložený. Otvor PDF a vytlač ho.' : 'Obrázok diplomu je uložený. Môžeš ho poslať.'); }
+  catch (err) { if (err && err.code === 'declined') { toastEl.hidden = true; return; } toast(err && err.code === 'rate_limited' ? 'Chvíľku počkaj a skús znova.' : 'Diplom sa nepodarilo uložiť. Urob si snímku obrazovky.'); }
+}
+
+/* ---------------- hry za odmenu (odomykajú sa úrovňami) ---------------- */
+const GAMES = [
+  { id: 'snake', title: 'Slovíčkový had', desc: 'Prečítaj anglické slovo a zjedz hadíkom správny obrázok.', level: 1, pic: 'goat' },
+  { id: 'bounce', title: 'Odrážaj loptičku', desc: 'Odraz loptičku do tehličky so správnym anglickým slovom.', level: 2, pic: 'ball' },
+];
+let gameStop = null;
+const gameOpen = (g) => levelOf(pget('stars', 0)).index >= g.level;
+const gamePool = () => { const ws = unlockedIds().flatMap(id => lessonWords(lessonById(id))); return ws.length >= 4 ? ws : LESSONS[0].groups.flatMap(x => x.words); };
+const GAME_ICON = svg('<rect x="10" y="28" width="80" height="48" rx="22" fill="#8E55C9"/><path d="M28 44v16M20 52h16" stroke="#fff" stroke-width="6"/><circle cx="66" cy="46" r="5" fill="#FFD43B" stroke="none"/><circle cx="76" cy="56" r="5" fill="#46B05A" stroke="none"/><circle cx="58" cy="58" r="5" fill="#E5443B" stroke="none"/>');
+function gamesCard() {
+  const open = GAMES.filter(gameOpen).length, next = GAMES.find(g => !gameOpen(g));
+  return `<button class="achbtn gamesbtn" data-go="games"><span class="achicon">${GAME_ICON}</span><span class="grow"><strong>Hry za odmenu</strong><span class="achstats">${open ? `<span><b>${open}</b>/${GAMES.length} odomknuté</span>` : ''}${next ? `<span>ďalšia na úrovni ${next.level + 1}: ${esc(LEVELS[next.level][1])}</span>` : '<span>všetky odomknuté!</span>'}</span></span><span class="go-arrow">›</span></button>`;
+}
+function games() {
+  const n = pget('stars', 0);
+  app.innerHTML = `${topbar('Hry za odmenu')}
+    <div class="card"><p>Hry sa odomykajú za úrovne. Hráš s anglickými slovíčkami z odomknutých lekcií.</p>${levelBar(n)}</div>
+    ${GAMES.map(g => { const ok = gameOpen(g), best = pget('best:' + g.id, 0); return `<div class="card gamecard ${ok ? '' : 'locked'}"><div class="earned-row">${picHTML(g.pic)}<div class="grow"><h3>${esc(g.title)}</h3><p class="muted">${esc(g.desc)}</p>
+      ${ok ? (best ? `<p>Tvoj rekord: <strong>${best}</strong></p>` : '') : `<p><strong>Zamknuté.</strong> Odomkne sa na úrovni ${g.level + 1}: ${esc(LEVELS[g.level][1])} (${LEVELS[g.level][0]} hviezdičiek). Chýba ti ${Math.max(0, LEVELS[g.level][0] - n)}.</p>`}</div></div>
+      ${ok ? `<button class="big" data-play="${g.id}">Hrať</button>` : ''}</div>`; }).join('')}`;
+  app.querySelectorAll('[data-play]').forEach(b => b.addEventListener('click', () => go('play', { game: b.dataset.play })));
+}
+function play() {
+  const g = GAMES.find(x => x.id === state.game);
+  if (!g || !gameOpen(g)) return go('games');
+  app.innerHTML = `${topbar(esc(g.title), 'games')}
+    <div class="card gamebox"><div class="gamehud"><span id="ghint" class="ghint"></span><span class="gstats"><span id="gscore">0</span> ${STAR_SM} <span id="glives"></span></span></div>
+      <div class="gwrap"><canvas id="gcv"></canvas><div class="gover" id="gover"></div></div>
+      ${g.id === 'snake' ? `<div class="dpad"><button data-dir="up" aria-label="Hore">▲</button><button data-dir="left" aria-label="Doľava">◀</button><button data-dir="down" aria-label="Dole">▼</button><button data-dir="right" aria-label="Doprava">▶</button></div>`
+        : '<p class="muted" style="text-align:center">Pohybuj prstom po ihrisku alebo šípkami ← →.</p>'}</div>`;
+  (g.id === 'snake' ? snakeGame : bounceGame)(g);
+}
+function gameSetup(cssW, cssH) {
+  const cv = document.getElementById('gcv'), dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = cssW * dpr; cv.height = cssH * dpr; cv.style.width = '100%'; cv.style.aspectRatio = `${cssW} / ${cssH}`;
+  const g = cv.getContext('2d'); g.scale(dpr, dpr); return { cv, g };
+}
+function gameHUD(score, lives) { document.getElementById('gscore').textContent = score; document.getElementById('glives').innerHTML = '❤'.repeat(lives) + '<span class="lost">' + '❤'.repeat(3 - lives) + '</span>'; }
+function gameOverlay(html, btn, onBtn) {
+  const o = document.getElementById('gover'); if (!o) return;
+  o.innerHTML = `${html}${btn ? `<button class="big">${btn}</button>` : ''}`; o.hidden = false;
+  if (btn) o.querySelector('button').onclick = () => { o.hidden = true; onBtn(); };
+}
+function gameEnd(id, score, restart) {
+  const key = 'best:' + id, best = pget(key, 0), rec = score > best; if (rec) pset(key, score);
+  gameOverlay(`<h3>${rec && score ? 'Nový rekord!' : 'Koniec hry'}</h3><p class="score">${score}</p><p>${rec || !best ? '' : `Rekord: ${best}`}</p>`, 'Hrať znova', restart);
+}
+async function gameImgs(words) { const m = {}; await Promise.all(words.map(async w => { try { m[w.pic] = await svgImg(svg(PICS[w.pic] || '')); } catch (e) {} })); return m; }
+const pickTarget = (pool, last) => { let w; do { w = pool[Math.floor(Math.random() * pool.length)]; } while (pool.length > 1 && last && w.en === last.en); return w; };
+
+/* Had: anglické slovo hore, hadík zje správny obrázok */
+async function snakeGame(meta) {
+  const COLS = 11, ROWS = 13, C = 32, W = COLS * C, H = ROWS * C;
+  const { cv, g } = gameSetup(W, H);
+  const pool = gamePool(), imgs = await gameImgs(pool);
+  let snake, dir, nextDir, foods, target, score, lives, timer = null, alive = false;
+  const hint = document.getElementById('ghint');
+  const free = () => { let c; do { c = { x: Math.floor(Math.random() * COLS), y: 1 + Math.floor(Math.random() * (ROWS - 1)) }; } while (snake.some(s => s.x === c.x && s.y === c.y) || foods.some(f => Math.abs(f.x - c.x) + Math.abs(f.y - c.y) < 2) || Math.abs(c.x - snake[0].x) + Math.abs(c.y - snake[0].y) < 3); return c; };
+  function newRound() {
+    target = pickTarget(pool, target); foods = [];
+    const others = shuffle(pool.filter(w => w.pic !== target.pic)).slice(0, 2);
+    [target, ...others].forEach(w => foods.push(Object.assign(free(), { w })));
+    hint.innerHTML = `Zjedz: <strong lang="en">${esc(target.en)}</strong>${speakBtn(target.en)}`;
+  }
+  function reset() { snake = [{ x: 5, y: 7 }, { x: 4, y: 7 }, { x: 3, y: 7 }]; dir = nextDir = { x: 1, y: 0 }; }
+  function start() { score = 0; lives = 3; foods = []; reset(); newRound(); gameHUD(score, lives); alive = true; loop(); }
+  const speed = () => Math.max(170, 300 - score * 8);
+  function loop() { clearTimeout(timer); if (!alive) return; step(); draw(); timer = setTimeout(loop, speed()); }
+  function lose() {
+    lives--; gameHUD(score, lives); sfx('bad');
+    if (lives <= 0) { alive = false; draw(); return gameEnd(meta.id, score, start); }
+    alive = false; reset(); draw(); gameOverlay(`<p>Au! Zostávajú ti ${lives} ${lives === 1 ? 'život' : 'životy'}.</p>`, 'Pokračovať', () => { alive = true; loop(); });
+  }
+  function step() {
+    dir = nextDir; const h = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+    if (h.x < 0 || h.y < 0 || h.x >= COLS || h.y >= ROWS || snake.some(s => s.x === h.x && s.y === h.y)) return lose();
+    snake.unshift(h);
+    const f = foods.find(f => f.x === h.x && f.y === h.y);
+    if (!f) { snake.pop(); return; }
+    if (f.w.pic === target.pic) { score++; gameHUD(score, lives); sfx('good'); setTimeout(() => speak(target.en), 500); newRound(); }
+    else { snake.pop(); if (snake.length > 3) snake.pop(); sfx('bad'); hint.innerHTML = `To bolo <strong>${esc(f.w.en)}</strong>. Zjedz: <strong lang="en">${esc(target.en)}</strong>${speakBtn(target.en)}`; foods = foods.filter(x => x !== f); foods.push(Object.assign(free(), { w: f.w })); }
+  }
+  function draw() {
+    g.fillStyle = '#E3F4D7'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#D3EBC2'; for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if ((x + y) % 2) g.fillRect(x * C, y * C, C, C);
+    foods.forEach(f => { g.fillStyle = '#FFFFFF'; g.beginPath(); g.roundRect(f.x * C - 3, f.y * C - 3, C + 6, C + 6, 9); g.fill(); g.strokeStyle = '#FFB81C'; g.lineWidth = 2; g.stroke(); const im = imgs[f.w.pic]; if (im) g.drawImage(im, f.x * C - 1, f.y * C - 1, C + 2, C + 2); });
+    snake.forEach((s, i) => { g.fillStyle = i ? (i % 2 ? '#46B05A' : '#3A9A4C') : '#2E7D3E'; g.beginPath(); g.roundRect(s.x * C + 2, s.y * C + 2, C - 4, C - 4, i ? 8 : 12); g.fill(); });
+    const h = snake[0]; g.fillStyle = '#fff'; const ex = dir.y ? [-6, 6] : [0, 0], ey = dir.x ? [-6, 6] : [0, 0];
+    [0, 1].forEach(k => { g.beginPath(); g.arc(h.x * C + C / 2 + ex[k] + dir.x * 5, h.y * C + C / 2 + ey[k] + dir.y * 5, 4.5, 0, 7); g.fill(); g.fillStyle = '#1C2840'; g.beginPath(); g.arc(h.x * C + C / 2 + ex[k] + dir.x * 6.5, h.y * C + C / 2 + ey[k] + dir.y * 6.5, 2.2, 0, 7); g.fill(); g.fillStyle = '#fff'; });
+  }
+  const DIRS = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
+  const turn = (d) => { const n = DIRS[d]; if (n && !(n.x === -dir.x && n.y === -dir.y)) nextDir = n; };
+  const key = (e) => { const d = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' }[e.key]; if (d) { e.preventDefault(); turn(d); } };
+  document.addEventListener('keydown', key);
+  app.querySelectorAll('[data-dir]').forEach(b => b.addEventListener('pointerdown', (e) => { e.preventDefault(); turn(b.dataset.dir); }));
+  let t0 = null; cv.addEventListener('touchstart', e => { t0 = e.touches[0]; }, { passive: true });
+  cv.addEventListener('touchmove', e => { if (!t0) return; e.preventDefault(); const t = e.touches[0], dx = t.clientX - t0.clientX, dy = t.clientY - t0.clientY; if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return; turn(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up')); t0 = t; }, { passive: false });
+  gameStop = () => { alive = false; clearTimeout(timer); document.removeEventListener('keydown', key); };
+  reset(); foods = []; score = 0; lives = 3; gameHUD(0, 3); hint.textContent = 'Pripravený?'; draw();
+  gameOverlay('<h3>Slovíčkový had</h3><p>Hore uvidíš anglické slovo. Doveď hadíka k správnemu obrázku. Nenarážaj do steny ani do seba.</p>', 'Štart', start);
+}
+
+/* Odrážanie: loptička do tehličky so správnym slovom */
+async function bounceGame(meta) {
+  const W = 360, H = 520;
+  const { cv, g } = gameSetup(W, H);
+  const pool = gamePool(), imgs = await gameImgs(pool);
+  const hint = document.getElementById('ghint');
+  let bricks, target, score, lives, ball, pad, raf = null, alive = false, flash = null;
+  const BW = 160, BH = 40, BX = [16, 184];
+  function fill() {
+    const have = bricks.map(b => b.w.en); const add = shuffle(pool.filter(w => !have.includes(w.en)));
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 2; c++) if (!bricks.some(b => b.r === r && b.c === c) && add.length) bricks.push({ r, c, w: add.pop(), hit: 0 });
+  }
+  function newTarget() { if (bricks.length < 3) fill(); target = pickTarget(bricks.map(b => b.w), target); hint.innerHTML = `${imgs[target.pic] ? picHTML(target.pic, 'tiny') : ''}Trafi: <strong>${esc(target.sk)}</strong>`; }
+  function serve() { ball = { x: pad.x, y: H - 60, vx: (Math.random() < .5 ? -1 : 1) * 2.2, vy: -3.6, r: 9 }; }
+  function start() { score = 0; lives = 3; bricks = []; fill(); pad = { x: W / 2, w: 90 }; newTarget(); serve(); gameHUD(score, lives); alive = true; cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); }
+  let last = 0;
+  function frame(t) {
+    if (!alive) return; const dt = Math.min(2, last ? (t - last) / 16.7 : 1); last = t;
+    if (keys.l) pad.x -= 7 * dt; if (keys.r) pad.x += 7 * dt; pad.x = Math.max(pad.w / 2, Math.min(W - pad.w / 2, pad.x));
+    ball.x += ball.vx * dt; ball.y += ball.vy * dt;
+    if (ball.x < ball.r) { ball.x = ball.r; ball.vx = Math.abs(ball.vx); } if (ball.x > W - ball.r) { ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx); }
+    if (ball.y < ball.r) { ball.y = ball.r; ball.vy = Math.abs(ball.vy); }
+    if (ball.vy > 0 && ball.y > H - 34 - ball.r && ball.y < H - 18 && Math.abs(ball.x - pad.x) < pad.w / 2 + ball.r) {
+      const k = (ball.x - pad.x) / (pad.w / 2); const sp = Math.min(6, Math.hypot(ball.vx, ball.vy) * 1.01);
+      ball.vx = sp * Math.sin(k * 1.0); ball.vy = -Math.abs(sp * Math.cos(k * 1.0)); ball.y = H - 34 - ball.r;
+    }
+    if (ball.y > H + 20) { lives--; gameHUD(score, lives); sfx('bad'); if (lives <= 0) { alive = false; draw(); return gameEnd(meta.id, score, start); } serve(); }
+    for (const b of bricks) {
+      const x = BX[b.c], y = 70 + b.r * (BH + 12);
+      if (ball.x + ball.r > x && ball.x - ball.r < x + BW && ball.y + ball.r > y && ball.y - ball.r < y + BH) {
+        const ox = Math.min(ball.x + ball.r - x, x + BW - ball.x + ball.r), oy = Math.min(ball.y + ball.r - y, y + BH - ball.y + ball.r);
+        if (ox < oy) ball.vx = ball.x < x + BW / 2 ? -Math.abs(ball.vx) : Math.abs(ball.vx); else ball.vy = ball.y < y + BH / 2 ? -Math.abs(ball.vy) : Math.abs(ball.vy);
+        if (b.w.en === target.en) { bricks = bricks.filter(x => x !== b); score++; gameHUD(score, lives); sfx('good'); const said = target.en; setTimeout(() => speak(said), 450); newTarget(); }
+        else { b.hit = 18; sfx('pair'); }
+        break;
+      }
+    }
+    bricks.forEach(b => { if (b.hit) b.hit--; });
+    draw(); raf = requestAnimationFrame(frame);
+  }
+  function draw() {
+    g.fillStyle = '#1F3A68'; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(255,255,255,.06)'; for (let i = 0; i < 12; i++) g.fillRect(0, i * 46, W, 23);
+    const COLORS = ['#E5443B', '#F28C28', '#46B05A', '#2F7BE0', '#8E55C9'];
+    bricks.forEach((b, i) => { const x = BX[b.c] + (b.hit ? Math.sin(b.hit) * 3 : 0), y = 70 + b.r * (BH + 12);
+      g.fillStyle = b.hit ? '#FDE3E0' : COLORS[(b.r * 2 + b.c) % COLORS.length]; g.beginPath(); g.roundRect(x, y, BW, BH, 10); g.fill();
+      g.fillStyle = b.hit ? '#D33F35' : '#FFFFFF'; g.font = '700 21px "Baloo 2", "Trebuchet MS", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(b.w.en, x + BW / 2, y + BH / 2 + 2, BW - 12); });
+    if (pad) { g.fillStyle = '#FFB81C'; g.beginPath(); g.roundRect(pad.x - pad.w / 2, H - 34, pad.w, 14, 7); g.fill(); }
+    if (ball) { g.fillStyle = '#FFFFFF'; g.beginPath(); g.arc(ball.x, ball.y, ball.r, 0, 7); g.fill(); }
+  }
+  const keys = {};
+  const kd = (e) => { if (e.key === 'ArrowLeft') { keys.l = true; e.preventDefault(); } if (e.key === 'ArrowRight') { keys.r = true; e.preventDefault(); } };
+  const ku = (e) => { if (e.key === 'ArrowLeft') keys.l = false; if (e.key === 'ArrowRight') keys.r = false; };
+  document.addEventListener('keydown', kd); document.addEventListener('keyup', ku);
+  const moveTo = (clientX) => { const r = cv.getBoundingClientRect(); if (pad) pad.x = (clientX - r.left) / r.width * W; };
+  cv.addEventListener('pointermove', e => moveTo(e.clientX));
+  cv.addEventListener('touchmove', e => { e.preventDefault(); moveTo(e.touches[0].clientX); }, { passive: false });
+  gameStop = () => { alive = false; cancelAnimationFrame(raf); document.removeEventListener('keydown', kd); document.removeEventListener('keyup', ku); };
+  bricks = []; fill(); pad = { x: W / 2, w: 90 }; target = null; hint.textContent = 'Pripravený?'; draw();
+  gameOverlay('<h3>Odrážaj loptičku</h3><p>Hore uvidíš slovenské slovo. Odraz loptičku do tehličky s anglickým slovom. Nepusť loptičku dole.</p>', 'Štart', start);
+}
+
+/* --- spustenie cvičenia / testu --- */
+function buildItems(kind, pool, count) {
+  const ws = shuffle(pool);
+  if (kind === 'match') {
+    const size = Math.min(8, ws.length), n = ws.length >= 16 && count >= 16 ? 2 : 1;
+    const boards = []; for (let i = 0; i < n; i++) boards.push({ type: 'match', words: ws.slice(i * size, i * size + size) });
+    return boards;
+  }
+  return ws.slice(0, count).map(w => ({ type: kind, word: w }));
+}
+function startExercise(kind) {
+  const l = lessonById(state.lessonId); const e = EXERCISES.find(x => x.kind === kind);
+  const items = buildItems(kind, poolFor(l), e.count);
+  go('run', { run: { mode: 'exercise', kind, title: e.title, items, i: 0, results: [], back: 'lesson' } });
+}
+function startTest(which, wordsOverride) {
+  const ids = which === 'lesson' ? [state.lessonId] : unlockedIds();
+  const pool = wordsOverride || ids.flatMap(id => lessonWords(lessonById(id)));
+  const n = which === 'lesson' ? 16 : 20;
+  const types = ['write', 'letters', 'pick', 'sentence', 'which'];
+  const items = shuffle(pool).slice(0, n).map((w, i) => ({ type: types[i % types.length], word: w }));
+  go('run', { run: { mode: 'test', kind: which, title: which === 'lesson' ? 'Test z lekcie' : 'Súhrnný test', items: shuffle(items), i: 0, results: [], back: which === 'lesson' ? 'lesson' : 'home' } });
+}
+function practiceWords(list) {
+  go('run', { run: { mode: 'exercise', kind: 'write', title: 'Zopakuj si slovíčka', items: shuffle(list).map(w => ({ type: 'write', word: w })), i: 0, results: [], back: state.run.back } });
+}
+
+function runView() {
+  const r = state.run; const item = r.items[r.i];
+  const total = r.items.length;
+  app.innerHTML = `${topbar(esc(r.title), r.back, 'Koniec')}
+    <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${r.i}"><div style="width:${(r.i / total) * 100}%"></div></div>
+    <p class="qcount">${r.mode === 'test' ? 'Otázka' : 'Úloha'} ${r.i + 1} z ${total}</p>
+    <div class="card question" id="q"></div>`;
+  const q = document.getElementById('q');
+  RENDER[item.type](q, item, (res) => answered(res, q));
+  if (r.mode === 'exercise' && q.hint) {
+    const hb = document.createElement('button'); hb.className = 'hintbtn'; hb.id = 'hintbtn';
+    const label = () => { hb.innerHTML = `Nápoveda <span class="hintcost">${HINT_COST} ${STAR_SM}</span><span class="muted">máš ${wallet()}</span>`; hb.classList.toggle('poor', wallet() < HINT_COST); };
+    label();
+    hb.onclick = () => {
+      if (wallet() < HINT_COST) return toast(`Na nápovedu potrebuješ ${HINT_COST} hviezdičiek. Máš ${wallet()}. Zbieraj ďalej!`);
+      if (q.hint() === false) return toast('Viac nápovedy tu už nie je.');
+      pset('spent', pget('spent', 0) + HINT_COST); label(); toast(`Nápoveda za ${HINT_COST} hviezdičiek. Zostáva ti ${wallet()}.`);
+    };
+    const chk = q.querySelector('#check'); chk ? q.insertBefore(hb, chk) : q.appendChild(hb);
+  }
+}
+function answered(res, q) {
+  q.querySelector('#hintbtn')?.remove(); q.hint = null;
+  const r = state.run; r.results.push(...res.results);
+  const gained = res.results.filter(x => x.ok).length; track(res.results);
+  if (gained) r.newStickers = (r.newStickers || []).concat(addStars(gained)), r.earned = (r.earned || 0) + gained;
+  if (r.mode === 'test') return next();
+  const fb = document.createElement('div');
+  if (!res.word) fb.className = res.ok ? 'feedback good' : 'feedback bad', fb.innerHTML = res.ok ? '<span>Výborne! Všetko si spojil(a) hneď.</span>' : '<span>Hotovo! Niektoré dvojice si si najprv pomýlil(a).</span>';
+  else if (res.ok) fb.className = 'feedback good', fb.innerHTML = `<span>${['Výborne!', 'Super!', 'Správne!', 'Bravo!'][Math.floor(Math.random() * 4)]}</span><span class="plus">+1 ${STAR_SM}</span>${res.word ? speakBtn(res.word.en) : ''}`;
+  else fb.className = 'feedback bad', fb.innerHTML = `<span>Ešte nie. Správne je: <span class="correct">${esc(res.word.en)}</span></span>${speakBtn(res.word.en)}`;
+  q.appendChild(fb);
+  const b = document.createElement('button'); b.className = 'big'; b.textContent = r.i + 1 < r.items.length ? 'Ďalej' : 'Výsledok'; b.id = 'next';
+  b.onclick = next; q.appendChild(b); b.focus();
+  sfx(res.ok ? 'good' : 'bad');
+  if (res.ok && res.word) setTimeout(() => speak(res.word.en), 750);
+}
+function next() { const r = state.run; r.i++; if (r.i >= r.items.length) go('result'); else render(); }
+
+function checkButton(q, onCheck) {
+  const b = document.createElement('button'); b.className = 'big'; b.textContent = 'Skontrolovať'; b.id = 'check';
+  b.onclick = () => { b.remove(); q.querySelectorAll('input').forEach(i => i.disabled = true); onCheck(); };
+  q.appendChild(b);
+  q.addEventListener('keydown', (e) => { if (e.key === 'Enter' && document.getElementById('check')) { e.preventDefault(); b.click(); } });
+}
+const helpHTML = (text) => `<span class="helpline"><button class="help" data-help aria-expanded="false" aria-label="Ukázať slovenský preklad" title="Preklad">?</button><span class="help-text" hidden>${esc(text)}</span></span>`;
+const PAIR_COLORS = [['#FDE3E0', '#E5443B'], ['#DDF4E7', '#23905A'], ['#DCEBFF', '#2763D6'], ['#FFF1CC', '#E0A100'], ['#EFE3FB', '#8E55C9'], ['#FFE6D1', '#FF8A1F'], ['#FCE4F1', '#D94F97'], ['#DDF5F5', '#1E9C9C']];
+const RENDER = {
+  write(q, { word: w }, done) {
+    q.innerHTML = `${picHTML(w.pic, 'lg')}<p class="sk-word">${esc(w.sk)}</p><p class="prompt">Napíš po anglicky:</p>
+      <input class="answer-input" id="ans" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Anglické slovo">`;
+    const inp = q.querySelector('input'); inp.focus();
+    let shown = 0; q.hint = () => { if (shown >= w.en.length - 1) return false; shown++; inp.value = w.en.slice(0, shown); inp.focus(); };
+    checkButton(q, () => { const ok = norm(inp.value) === norm(w.en); inp.style.borderColor = ok ? 'var(--good)' : 'var(--bad)'; done({ ok, word: w, results: [{ w, ok }] }); });
+  },
+  letters(q, { word: w }, done) {
+    const pat = hidePattern(w.en);
+    q.innerHTML = `${picHTML(w.pic, 'lg')}<p class="sk-word">${esc(w.sk)}</p><p class="prompt">Doplň chýbajúce písmenká:</p>
+      <div class="letters">${pat.map((c, i) => c === null ? `<input maxlength="1" id="l${i}" data-i="${i}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Písmenko ${i + 1}">` : `<span>${esc(c)}</span>`).join('')}</div>`;
+    const ins = [...q.querySelectorAll('.letters input')]; ins[0].focus();
+    ins.forEach((inp, k) => {
+      inp.addEventListener('input', () => { if (inp.value && ins[k + 1]) ins[k + 1].focus(); });
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !inp.value && ins[k - 1]) ins[k - 1].focus(); });
+    });
+    q.hint = () => { const t = ins.find(x => norm(x.value) !== w.en[+x.dataset.i].toLowerCase()); if (!t) return false; t.value = w.en[+t.dataset.i]; t.readOnly = true; t.classList.add('given'); const nx = ins.find(x => !x.value); if (nx) nx.focus(); };
+    checkButton(q, () => {
+      let ok = true;
+      ins.forEach(inp => { const good = norm(inp.value) === w.en[+inp.dataset.i].toLowerCase(); if (!good) ok = false; inp.style.borderColor = good ? 'var(--good)' : 'var(--bad)'; });
+      done({ ok, word: w, results: [{ w, ok }] });
+    });
+  },
+  pick(q, { word: w }, done) {
+    const opts = shuffle([w, ...others(w, poolAll(), 3)]);
+    q.innerHTML = `${picHTML(w.pic, 'lg')}<p class="prompt">Ktoré slovo patrí k obrázku?</p><div class="options">${opts.map((o, i) => `<button class="opt" data-i="${i}">${esc(o.en)}</button>`).join('')}</div>`;
+    choice(q, opts, w, done);
+  },
+  sentence(q, { word: w }, done) {
+    const opts = shuffle([w, ...others(w, poolAll(), 3)]);
+    q.innerHTML = `<p class="prompt">Doplň slovo do vety:</p><p class="sentence">${sentHTML(w, '<span class="blank">&nbsp;</span>')}</p>${w.sentSk ? helpHTML(w.sentSk) : ''}
+      <div class="options">${opts.map((o, i) => `<button class="opt" data-i="${i}">${esc(o.en)}</button>`).join('')}</div>`;
+    choice(q, opts, w, done, () => { q.querySelector('.blank').textContent = w.en; });
+  },
+  which(q, { word: w }, done) {
+    const opts = shuffle([w, ...others(w, poolAll(), 2)]);
+    q.innerHTML = `${picHTML(w.pic, 'lg')}<p class="sk-word">${esc(w.en)} ${speakBtn(w.en)}</p><p class="prompt">Do ktorej vety patrí toto slovo?</p>
+      <div class="options one">${opts.map((o, i) => `<div class="optrow"><button class="opt sent" data-i="${i}">${sentHTML(o, '_____')}</button>${o.sentSk ? helpHTML(o.sentSk) : ''}</div>`).join('')}</div>`;
+    choice(q, opts, w, done, null, true);
+  },
+  match(q, { words: ws }, done) {
+    const pics = shuffle(ws), names = shuffle(ws);
+    q.innerHTML = `<p class="prompt">Ťukni na slovo a potom na jeho obrázok.</p><div class="board ${ws.length > 4 ? 'board8' : ''}">
+      <div class="col">${names.map(w => `<button class="tile" data-word="${esc(w.en)}">${esc(w.en)}</button>`).join('')}</div>
+      <div class="col">${pics.map(w => `<button class="tile" data-pic="${esc(w.en)}" aria-label="Obrázok">${picHTML(w.pic)}</button>`).join('')}</div></div>`;
+    const errors = new Set(); let sel = null, matched = 0;
+    q.hint = () => { const t1 = [...q.querySelectorAll('.tile[data-word]:not(.done)')][0]; if (!t1) return false; const t2 = q.querySelector(`.tile[data-pic="${CSS.escape(t1.dataset.word)}"]`); [t1, t2].forEach(x => { x.classList.remove('hinted'); void x.offsetWidth; x.classList.add('hinted'); }); };
+    q.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => {
+      if (t.classList.contains('done')) return;
+      if (!sel || (sel.dataset.word && t.dataset.word) || (sel.dataset.pic && t.dataset.pic)) { q.querySelectorAll('.sel').forEach(x => x.classList.remove('sel')); sel = t; t.classList.add('sel'); return; }
+      const a = sel.dataset.word || sel.dataset.pic, b = t.dataset.word || t.dataset.pic;
+      sel.classList.remove('sel');
+      if (a === b) {
+        const col = PAIR_COLORS[matched % PAIR_COLORS.length]; [sel, t].forEach(x => { x.classList.add('done'); x.style.background = col[0]; x.style.borderColor = col[1]; }); matched++; sfx('pair'); setTimeout(() => speak(a), 350);
+        if (matched === ws.length) done({ ok: errors.size === 0, word: null, results: ws.map(w => ({ w, ok: !errors.has(w.en) })), matchErrors: errors });
+      } else {
+        const wordEn = sel.dataset.word || t.dataset.word; errors.add(wordEn);
+        [sel, t].forEach(x => { x.classList.remove('shake'); void x.offsetWidth; x.classList.add('shake'); }); sfx('bad');
+      }
+      sel = null;
+    }));
+  },
+};
+function poolAll() { return state.run.mode === 'test' && state.run.kind === 'summary' ? unlockedIds().flatMap(id => lessonWords(lessonById(id))) : lessonWords(lessonById(state.lessonId)); }
+function choice(q, opts, w, done, after, isSent) {
+  q.hint = () => { const wrong = shuffle([...q.querySelectorAll('.opt:not(:disabled)')].filter(x => opts[+x.dataset.i] !== w)); if (wrong.length < 2) return false; wrong.slice(0, opts.length >= 4 ? 2 : 1).forEach(x => { x.disabled = true; (x.closest('.optrow') || x).classList.add('gone'); }); };
+  q.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => {
+    const o = opts[+b.dataset.i]; const ok = o === w;
+    q.querySelectorAll('.opt').forEach(x => { x.disabled = true; if (opts[+x.dataset.i] === w) x.classList.add('good'); });
+    if (!ok) b.classList.add('bad');
+    if (after) after();
+    done({ ok, word: w, results: [{ w, ok }] });
+  }));
+}
+
+function result() {
+  const r = state.run; const total = r.results.length; const good = r.results.filter(x => x.ok).length;
+  const missed = [...new Map(r.results.filter(x => !x.ok).map(x => [x.w.en, x.w])).values()];
+  const pct = total ? good / total : 0; const stars = pct >= .9 ? 3 : pct >= .6 ? 2 : pct > 0 ? 1 : 0;
+  const msg = stars === 3 ? 'Úžasné! Vieš to výborne.' : stars === 2 ? 'Dobrá práca! Ešte trochu precvičiť.' : 'Nevadí, skúsme to znova spolu.';
+  if (!r.awarded) { r.awarded = true; r.bonus = r.mode === 'test' ? 5 + (pct >= .9 ? 5 : 0) : 3; r.newStickers = (r.newStickers || []).concat(addStars(r.bonus)); r.earned = (r.earned || 0) + r.bonus;
+    const st = stats(); st[r.mode === 'test' ? 'tests' : 'ex']++; if (total >= 5 && good === total) st.perfect++; pset('stats', st); r.newBadges = newBadges();
+    const gs = pget('gamesSeen', []); r.newGames = GAMES.filter(g => gameOpen(g) && !gs.includes(g.id)); if (r.newGames.length) pset('gamesSeen', GAMES.filter(gameOpen).map(g => g.id)); }
+  const earnedHTML = `<div class="card earned"><div class="earned-row">${STAR(true)}<div><p class="score">+${r.earned}</p><p class="muted">hviezdičiek (z toho bonus ${r.bonus})</p></div></div><p>Spolu máš <strong>${pget('stars', 0)}</strong> hviezdičiek · ${esc(levelOf(pget('stars', 0)).name)}</p>
+    ${r.newStickers.length ? `<div class="newsticker"><h3>Nová nálepka do albumu!</h3><div class="album">${r.newStickers.map(([t, k]) => `<div class="sticker">${picHTML(k)}</div>`).join('')}</div></div>` : ''}${r.newBadges && r.newBadges.length ? `<div class="newsticker"><h3>Nová odmena!</h3><div class="badges">${r.newBadges.map(b => `<div class="badge">${badgeSVG(b)}<strong>${esc(b[1])}</strong></div>`).join('')}</div></div>` : ''}${r.newGames && r.newGames.length ? `<div class="newsticker"><h3>Nová úroveň! Odomkla sa hra</h3>${r.newGames.map(g => `<p class="earned-row">${picHTML(g.pic)}<strong>${esc(g.title)}</strong></p>`).join('')}<button class="big alt" data-go="games">Ísť sa hrať</button></div>` : ''}<button class="big ghost" data-go="me">Moje úspechy</button></div>`;
+  if (r.mode === 'test' && !r.logged) { r.logged = true; const log = pget('tests', []); log.push({ t: Date.now(), kind: r.kind, lesson: state.lessonId, good, total, missed: missed.map(w => w.en) }); pset('tests', log.slice(-50)); }
+  app.innerHTML = `${topbar(esc(r.title), r.back)}
+    <div class="card question"><div class="stars">${[1, 2, 3].map(i => STAR(i <= stars)).join('')}</div>
+      <p class="score">${good} z ${total}</p><p class="sk-word">správne</p><p>${msg}</p></div>
+    ${earnedHTML}
+    ${missed.length ? `<div class="card"><h3>Tieto slovíčka treba zopakovať (${missed.length})</h3>
+      <div class="redo">${missed.map(w => `<div>${picHTML(w.pic)}<strong>${esc(w.en)}</strong><span class="muted">${esc(w.sk)}</span>${speakBtn(w.en)}</div>`).join('')}</div>
+      <button class="big alt" id="practice">Precvičiť tieto slovíčka</button></div>`
+    : `<div class="card"><h3>Všetko správne!</h3><p class="muted">Nie je čo opakovať.</p></div>`}
+    <div class="row"><button class="big" id="again">Skúsiť znova</button><button class="big ghost" data-go="${r.back}">Hotovo</button></div>`;
+  const p = document.getElementById('practice'); if (p) p.onclick = () => practiceWords(missed);
+  document.getElementById('again').onclick = () => r.mode === 'test' ? startTest(r.kind) : (r.title === 'Zopakuj si slovíčka' ? practiceWords(missed.length ? missed : r.items.map(i => i.word)) : startExercise(r.kind));
+}
+
+function parents() {
+  const unl = unlockedIds();
+  let unlockHTML;
+  if (CONFIG.unlockMode === 'central') {
+    unlockHTML = `<p>Lekcie odomyká správca triedy podľa toho, čo trieda práve preberá. Všetci rodičia vidia rovnaké lekcie. Momentálne odomknuté: <strong>${unl.map(id => 'lekcia ' + id).join(', ') || 'žiadna'}</strong>.</p>`;
+  } else if (!state.parentOk) {
+    unlockHTML = `<p>Lekcie si odomykáte sami. Aby ich neodomklo dieťa, odpovedzte najprv na otázku:</p>
+      <label for="pin"><strong>Koľko je 13 × 7?</strong></label><div class="row"><input id="pin" class="answer-input" inputmode="numeric" autocomplete="off" style="max-width:200px"><button class="big" id="pinok">Pokračovať</button></div>`;
+  } else {
+    const own = store.get('unlocked', []);
+    unlockHTML = LESSONS.map(l => { const central = CONFIG.unlockMode === 'both' && CONFIG.unlocked.includes(l.id);
+      return `<label class="toggle"><input type="checkbox" id="u${l.id}" data-unlock="${l.id}" ${central || own.includes(l.id) ? 'checked' : ''} ${central ? 'disabled' : ''}> ${l.title}: ${esc(l.name)}${central ? ' <span class="muted">(odomknutá pre celú triedu)</span>' : ''}</label>`; }).join('');
+  }
+  const sheets = unl.map(id => { const l = lessonById(id);
+    return `<div><h3>${l.title}</h3><div class="sheets">${EXERCISES.map(e => `<button class="sheetbtn" data-pdf="${pdfName(e.kind, id)}">Cvičenie ${e.n}: ${e.title}</button>`).join('')}<button class="sheetbtn" data-pdf="${pdfName('test', id)}">Test z lekcie</button></div></div>`; }).join('');
+  const log = profiles().flatMap(pr => store.get('p' + pr.id + ':tests', []).map(t => ({ ...t, who: profLabel(pr) }))).sort((a, b) => b.t - a.t).slice(0, 8);
+  app.innerHTML = `${topbar('Pre rodičov')}
+    <div class="card"><h3>Odomknuté lekcie</h3>${unlockHTML}</div>
+    <div class="card"><h3>Pracovné listy na tlač (A4)</h3><p class="muted">Ťuknite na list, potvrďte stiahnutie a stiahnuté PDF vytlačte. Riešenie pre rodiča je na poslednej strane, stačí ju nevytlačiť pre dieťa.</p>
+      ${sheets}${unl.length ? `<div class="sheets"><button class="sheetbtn" data-pdf="${pdfName('summary')}">Súhrnný test (všetky odomknuté lekcie)</button></div>` : ''}</div>
+    <div class="card"><h3>Posledné testy na tomto zariadení</h3><p class="muted">Ukladajú sa len v tomto prehliadači a nikam sa neposielajú.</p>${log.length ? log.map(t => `<p>${new Date(t.t).toLocaleDateString('sk-SK')} · ${esc(t.who)} · ${t.kind === 'summary' ? 'Súhrnný test' : 'Test z lekcie ' + t.lesson}: <strong>${t.good} z ${t.total}</strong>${t.missed.length ? ` · zopakovať: ${esc(t.missed.join(', '))}` : ''}</p>`).join('') : '<p class="muted">Zatiaľ žiadny test.</p>'}</div>
+    <div class="card"><h3>Zvuky a výslovnosť</h3><label class="toggle"><input type="checkbox" id="sfxon" ${store.get('mute', false) ? '' : 'checked'}> Zvuk po odpovedi (tadá / dong)</label>
+      <p class="muted">Tlačidlá s reproduktorom sa ukážu len vtedy, keď má zariadenie nainštalovaný anglický hlas, aby slová nečítal slovenský hlas so zlou výslovnosťou. ${'<span class="voice-on">Toto zariadenie anglický hlas má.</span><span class="voice-off">Toto zariadenie ho teraz nemá. Dá sa pridať v nastaveniach telefónu alebo počítača (Prevod textu na reč / Jazyk a reč, angličtina).</span>'}</p></div>
+    <div class="note">Obrázky v aplikácii sú vlastné kresby. Z učebnice sa používajú len slovíčka, vety sú napísané nanovo.</div>`;
+  const ok = document.getElementById('pinok');
+  if (ok) { const pin = document.getElementById('pin'); const check = () => { if (pin.value.trim() === '91') { state.parentOk = true; parents(); } else { pin.style.borderColor = 'var(--bad)'; pin.value = ''; } }; ok.onclick = check; pin.addEventListener('keydown', e => { if (e.key === 'Enter') check(); }); }
+  const so = document.getElementById('sfxon'); if (so) so.addEventListener('change', () => { store.set('mute', !so.checked); if (so.checked) sfx('good'); });
+  app.querySelectorAll('[data-unlock]').forEach(cb => cb.addEventListener('change', () => {
+    const id = +cb.dataset.unlock; let own = store.get('unlocked', []).filter(x => x !== id); if (cb.checked) own.push(id); store.set('unlocked', own);
+  }));
+}
+
+const toastEl = document.createElement('div'); toastEl.className = 'toast'; toastEl.hidden = true; toastEl.setAttribute('role', 'status'); document.body.appendChild(toastEl);
+let toastTimer;
+function toast(msg) { toastEl.textContent = msg; toastEl.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { toastEl.hidden = true; }, 5000); }
+const downloadsP = window.claude?.use ? window.claude.use('downloads') : Promise.resolve(null);
+async function savePdf(path) {
+  const dl = await downloadsP;
+  if (!dl) { if (WEB) return saveLocal(path, 'slovickovo-' + path.split('/').pop()); return toast('Sťahovanie tu nie je dostupné. Otvorte appku priamo na claude.ai.'); }
+  try {
+    const res = await fetch(path); if (!res.ok) throw new Error('fetch');
+    const blob = await res.blob();
+    await dl.save({ filename: 'slovickovo-' + path.split('/').pop(), data: blob });
+    toast('PDF je stiahnuté. Otvorte ho a vytlačte.');
+  } catch (err) {
+    if (err && err.code === 'declined') return;
+    if (err && err.code === 'rate_limited') return toast('Chvíľku počkajte a skúste to znova.');
+    toast('PDF sa nepodarilo stiahnuť. Skúste to znova.');
+  }
+}
+
+app.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-go],[data-lesson],[data-group],[data-ex],[data-test],[data-say],[data-pdf],[data-profile],[data-newav],[data-help]'); if (!t) return;
+  if (t.dataset.help !== undefined) { const tx = t.nextElementSibling; tx.hidden = !tx.hidden; t.setAttribute('aria-expanded', String(!tx.hidden)); return; }
+  if (t.dataset.pdf) return savePdf(t.dataset.pdf);
+  if (t.dataset.profile) { store.set('current', +t.dataset.profile); return go('home'); }
+  if (t.dataset.newav) return addProfile(t.dataset.newav);
+  if (t.dataset.say !== undefined) return speak(t.dataset.say);
+  if (t.dataset.go) return go(t.dataset.go);
+  if (t.dataset.lesson) return go('lesson', { lessonId: +t.dataset.lesson, group: 'all' });
+  if (t.dataset.group) return go('lesson', { group: t.dataset.group });
+  if (t.dataset.ex) return startExercise(t.dataset.ex);
+  if (t.dataset.test) return startTest(t.dataset.test);
+});
+render();
+if (WEB) {
+  fetch('lekcie.json?t=' + Date.now(), { cache: 'no-store' }).then(r => r.json()).then(j => {
+    if (!Array.isArray(j.odomknute)) return;
+    const list = j.odomknute.map(Number), added = list.filter(id => !CONFIG.unlocked.includes(id));
+    if (JSON.stringify(list) === JSON.stringify(CONFIG.unlocked)) return;
+    CONFIG.unlocked = list; store.set('remoteUnlocked', list);
+    if (['home', 'who', 'parents'].includes(state.view)) render();
+    if (added.length) toast(added.length === 1 ? `Nová lekcia ${added[0]} je odomknutá!` : `Nové lekcie sú odomknuté: ${added.join(', ')}`);
+  }).catch(() => {});
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+function saveLocal(href, filename) { const a = document.createElement('a'); a.href = href; a.download = filename; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); }
+
+/* =====================================================================
+   PRACOVNÉ LISTY A4 — z tejto funkcie sa generujú PDF súbory na tlač
+   ===================================================================== */
+function sheetHTML(kind, lessonId) {
+  rand = rng(kind.length * 1000 + (lessonId || 0) * 17 + 7);
+  const ids = kind === 'summary' ? unlockedIds() : [lessonId];
+  const all = ids.flatMap(id => lessonWords(lessonById(id)));
+  const where = kind === 'summary' ? 'Súhrnný test · lekcie ' + ids.join(', ') : lessonById(lessonId).title;
+  const ex = EXERCISES.find(e => e.kind === kind);
+  const title = ex ? `${where} · Cvičenie ${ex.n}: ${ex.title}` : kind === 'test' ? `${where} · Test` : where;
+  const pages = []; const keys = [];
+  const page = (body, instr, i, n, isKey) => `<section class="sheet ${isKey ? 'sh-key' : ''}"><div class="sh-head"><b>Slovíčkovo · Angličtina 2. ročník</b><span>${isKey ? 'RIEŠENIE PRE RODIČA' : 'Meno: ____________________ &nbsp; Dátum: __________'}</span></div>
+    <div class="sh-title">${isKey ? 'Riešenie: ' : ''}${esc(title)}</div>${instr ? `<p class="sh-instr">${instr}</p>` : ''}${body}<div class="sh-foot"><span>${esc(title)}</span><span>${isKey ? 'riešenie' : 'strana ' + i + ' / ' + n}</span></div></section>`;
+  const chunk = (arr, size) => { const n = Math.ceil(arr.length / size); const per = Math.ceil(arr.length / n); const out = []; for (let i = 0; i < arr.length; i += per) out.push(arr.slice(i, i + per)); return out; };
+  const cellPic = (w) => `<span class="sh-pic">${svg(PICS[w.pic])}</span>`;
+  const patStr = (w) => hidePattern(w.en).map(c => c === null ? '_' : esc(c)).join(' ');
+  const ws = shuffle(all);
+  let no = 0;
+  if (kind === 'write' || kind === 'letters') {
+    const ch = chunk(ws, 15);
+    ch.forEach((part, pi) => pages.push(page(`<div class="sh-grid">${part.map(w => { no++; keys.push(`<div>${no}. <b>${esc(w.en)}</b></div>`);
+      return kind === 'write' ? `<div class="sh-cell"><span class="no">${no}.</span>${cellPic(w)}<span class="sk">${esc(w.sk)}</span><span class="sh-line"></span></div>`
+        : `<div class="sh-cell"><span class="no">${no}.</span>${cellPic(w)}<span class="sk">${esc(w.sk)}</span><span class="sh-pattern">${patStr(w)}</span></div>`; }).join('')}</div>`,
+      kind === 'write' ? 'Pozri sa na obrázok a slovenské slovo. Napíš slovo po anglicky na čiaru.' : 'Doplň chýbajúce písmenká namiesto čiarok. Potom celé slovo prečítaj nahlas.', pi + 1, ch.length)));
+  } else if (kind === 'match') {
+    const ch = chunk(ws, 10);
+    ch.forEach((part, pi) => { const right = shuffle(part); const letters = 'ABCDEFGHIJ';
+      pages.push(page(`<div class="sh-match">${part.map((w, i) => { no++; const r = right[i]; keys.push(`<div>${no}. → <b>${letters[right.indexOf(w)]}</b> (${esc(w.en)})</div>`);
+        return `<div class="l"><b>${no}.</b><span class="pic">${svg(PICS[w.pic])}</span><span class="sh-dot"></span></div><div></div><div class="r"><span class="sh-dot"></span>${letters[i]}) ${esc(r.en)}</div>`; }).join('')}</div>`,
+        'Spoj čiarou obrázok so správnym anglickým slovom.', pi + 1, ch.length)); });
+  } else if (kind === 'sentence') {
+    const ch = chunk(ws, 15);
+    ch.forEach((part, pi) => pages.push(page(`<div class="sh-bank">${shuffle(part).map(w => `<span>${esc(w.en)}</span>`).join('')}</div>
+      <div class="sh-sents">${part.map(w => { no++; keys.push(`<div>${no}. <b>${esc(w.en)}</b> <span class="sh-sk">${esc(w.sentSk)}</span></div>`); return `<div>${no}. ${sentHTML(w, '<span class="bl"></span>')}</div>`; }).join('')}</div>`,
+      'Vyber slovo z rámčeka a napíš ho do vety. Každé slovo použi raz.', pi + 1, ch.length)));
+  } else if (kind === 'which') {
+    const ch = chunk(ws, 10);
+    ch.forEach((part, pi) => { const right = shuffle(part); const letters = 'ABCDEFGHIJ';
+      pages.push(page(`<div class="sh-match" style="grid-template-columns: 64mm 14mm 1fr">${part.map((w, i) => { no++; const r = right[i]; keys.push(`<div>${no}. ${esc(w.en)} → <b>${letters[right.indexOf(w)]}</b> <span class="sh-sk">${esc(w.sentSk)}</span></div>`);
+        return `<div class="l"><b>${no}.</b><span class="pic">${svg(PICS[w.pic])}</span><b style="font-size:15pt">${esc(w.en)}</b><span class="sh-dot"></span></div><div></div><div class="r sent"><span class="sh-dot"></span>${letters[i]}) ${sentHTML(r, '_____')}</div>`; }).join('')}</div>`,
+        'Spoj čiarou slovo s vetou, do ktorej patrí.', pi + 1, ch.length)); });
+  } else {
+    const per = kind === 'summary' ? 5 : 4; const pick = ws.slice(0, per * 4); const take = (k) => pick.slice(k * per, k * per + per); const total = per * 4;
+    const secA = take(0), secB = take(1), secC = take(2), secD = take(3);
+    const lettersD = shuffle(secD); const L = 'ABCDE';
+    const body = `<div class="sh-sec"><h3>A) Napíš slovo po anglicky</h3><div class="sh-row5">${secA.map((w, i) => `<div class="sh-cell"><span class="no">${i + 1}.</span>${cellPic(w)}<span class="sk">${esc(w.sk)}</span><span class="sh-line"></span></div>`).join('')}</div></div>
+      <div class="sh-sec"><h3>B) Doplň chýbajúce písmenká</h3><div class="sh-row5">${secB.map((w, i) => `<div class="sh-cell"><span class="no">${i + 1}.</span>${cellPic(w)}<span class="sh-pattern">${patStr(w)}</span></div>`).join('')}</div></div>
+      <div class="sh-sec"><h3>C) Doplň slovo do vety</h3><div class="sh-bank">${shuffle(secC).map(w => `<span>${esc(w.en)}</span>`).join('')}</div><div class="sh-sents">${secC.map((w, i) => `<div>${i + 1}. ${sentHTML(w, '<span class="bl"></span>')}</div>`).join('')}</div></div>
+      <div class="sh-sec"><h3>D) Napíš do rámčeka písmeno správneho slova</h3><div class="sh-bank">${lettersD.map((w, i) => `<span>${L[i]}) ${esc(w.en)}</span>`).join('')}</div><div class="sh-row5">${secD.map((w, i) => `<div class="sh-cell"><span class="no">${i + 1}.</span>${cellPic(w)}<span class="sh-box"></span></div>`).join('')}</div></div>
+      <div class="row"><span class="sh-points">Body: ______ / ${total}</span></div>`;
+    pages.push(page(body, '', 1, 1));
+    keys.push(`<div><b>A)</b></div>`, ...secA.map((w, i) => `<div>${i + 1}. <b>${esc(w.en)}</b></div>`), `<div><b>B)</b></div>`, ...secB.map((w, i) => `<div>${i + 1}. <b>${esc(w.en)}</b></div>`),
+      `<div><b>C)</b></div>`, ...secC.map((w, i) => `<div>${i + 1}. <b>${esc(w.en)}</b></div>`), `<div><b>D)</b></div>`, ...secD.map((w, i) => `<div>${i + 1}. <b>${L[lettersD.indexOf(w)]}</b> (${esc(w.en)})</div>`));
+  }
+  const keyBody = `<div class="sh-keylist${kind === 'sentence' || kind === 'which' ? ' wide' : ''}">${keys.join('')}</div>` + (kind === 'test' || kind === 'summary' ? '<p class="sh-instr">Za každú správnu odpoveď 1 bod. Slová s chybou si s dieťaťom zopakujte v aplikácii.</p>' : '');
+  pages.push(page(keyBody, '', 0, 0, true));
+  rand = Math.random;
+  return pages.join('');
+}
+window.__sheet = (kind, lessonId) => { document.body.className = 'printmode'; document.body.innerHTML = sheetHTML(kind, lessonId); };
+</script>
+
+</body>
+</html>
