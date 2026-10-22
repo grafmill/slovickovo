@@ -1,5 +1,5 @@
 // Slovíčkovo offline: appka sa uloží do telefónu, lekcie.json sa vždy skúša najprv z internetu
-const CACHE = 'slovickovo-202610220539';
+const CACHE = 'slovickovo-202610220614';
 const CORE = ["./", "index.html", "manifest.webmanifest", "fonts/fonts.css", "fonts/Andika-400-latin-ext.woff2", "fonts/Andika-400-latin.woff2", "fonts/Andika-700-latin-ext.woff2", "fonts/Andika-700-latin.woff2", "fonts/Baloo2-600-latin-ext.woff2", "fonts/Baloo2-600-latin.woff2", "fonts/Baloo2-800-latin-ext.woff2", "fonts/Baloo2-800-latin.woff2", "ikony/ikona-180.png", "ikony/ikona-192.png", "ikony/ikona-512.png"];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
