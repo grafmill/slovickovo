@@ -203,8 +203,13 @@ footer.foot button { background: none; border: none; color: var(--muted); text-d
 
 .achcard { flex-direction: column; align-items: stretch; gap: 10px; }
 .achtop { display: flex; gap: 10px; align-items: center; }
-.mename { display: block; font-size: 1.2rem; overflow-wrap: anywhere; }
+.mename { display: block; font-size: 1.2rem; }
 .wallet { display: inline-flex; align-items: center; gap: 4px; flex: none; }
+.mecard-main .grow { min-width: min-content; }
+.achtop .chip { flex: none; padding: 6px 10px; font-size: .9rem; min-height: 40px; }
+.achtop .mecard-main { gap: 8px; }
+.achtop .mecard-main .pic { width: 50px; height: 50px; }
+.achtop .mestars { font-size: 1.5rem; }
 .wallet .star-sm svg { width: 30px; height: 30px; }
 .achbtn { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--surface); border: 3px solid var(--accent); border-radius: 18px; padding: 10px 14px; cursor: pointer; text-align: left; font: inherit; color: var(--ink); min-height: 72px; }
 .achbtn:hover { box-shadow: 0 0 0 3px var(--accent-soft); }
@@ -255,6 +260,28 @@ footer.foot button { background: none; border: none; color: var(--muted); text-d
 .qzview { overflow: hidden; width: 100%; }
 .qzscale { transform-origin: top left; display: flex; flex-direction: column; gap: 12px; width: max-content; }
 .qzscale .qsheet { box-shadow: 0 1px 8px rgba(0,0,0,.25); }
+
+.cats { display: flex; flex-direction: column; gap: 12px; }
+.catrow { display: flex; gap: 10px; align-items: flex-start; }
+.catrow .muted { display: block; font-size: .95rem; }
+.catdip { margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; }
+.catrow > .pic { width: 52px; height: 52px; flex: none; }
+.catrow .progress { margin: 4px 0; }
+.catlv { display: inline-block; font-size: .8rem; font-weight: 700; border-radius: 999px; padding: 1px 8px; color: #1C2840; }
+.cattip { background: var(--accent-soft); border-radius: 12px; padding: 8px 12px; margin: 0; }
+.dip-catpic .pic { width: 120px; height: 120px; }
+.pexgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pexgrid.p8 { grid-template-columns: repeat(4, 1fr); }
+.pcard { position: relative; aspect-ratio: 4 / 5; border: none; border-radius: 14px; cursor: pointer; padding: 0; background: var(--primary); color: var(--primary-ink); font: inherit; transition: transform .25s; }
+.pcard .pback { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; }
+.pcard .pface { display: none; }
+.pcard.up { background: var(--surface); color: var(--ink); border: 3px solid var(--accent); transform: rotateY(0); }
+.pcard.up .pback { display: none; } .pcard.up .pface { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 6px; }
+.pcard.done { border-color: var(--good); background: var(--good-soft); }
+.pcard .pface .pic { width: 80%; height: auto; aspect-ratio: 1; }
+.pcard .pface b { font-family: var(--font-display); font-size: 1.25rem; overflow-wrap: anywhere; line-height: 1.1; }
+.pexgrid.p8 .pcard .pface b { font-size: 1.05rem; }
+.gover.static { position: static; background: none; }
 
 .sh-sk { font-size: 10.5pt; color: #555; }
 .sh-keylist.wide { columns: 2; font-size: 12pt; line-height: 1.5; }
@@ -730,14 +757,14 @@ function addProfile(animal) {
 }
 function deleteProfile() {
   const id = curId(); store.set('profiles', profiles().filter(p => p.id !== id));
-  try { ['stars', 'streak', 'tests', 'spent', 'stats', 'known', 'badges'].forEach(k => localStorage.removeItem('slovickovo:p' + id + ':' + k)); } catch (e) {}
+  try { ['stars', 'streak', 'tests', 'spent', 'stats', 'known', 'badges', 'cat', 'gamesSeen', 'best:snake', 'best:bounce', 'best:pexeso'].forEach(k => localStorage.removeItem('slovickovo:p' + id + ':' + k)); } catch (e) {}
   store.set('current', null); go('who');
 }
 
 /* ---------------- hviezdičky, úrovne, nálepky ---------------- */
 const STAR_SM = `<span class="star-sm">${svg('<path d="M50 10l12 25 27 3-20 19 6 27-25-14-25 14 6-27-20-19 27-3z" fill="#FFB81C" stroke="#C98500" stroke-width="5"/>')}</span>`;
-const LEVELS = [[0, 'Malý objaviteľ'], [60, 'Slovíčkový prieskumník'], [150, 'Anglický kamarát'], [300, 'Majster slovíčok'], [500, 'Hviezda angličtiny']];
-const STICKERS = [[10, 'cat'], [25, 'dog'], [45, 'bird'], [70, 'teddy'], [100, 'kite'], [135, 'ball'], [175, 'train'], [220, 'lion'], [270, 'goat'], [330, 'car'], [400, 'doll'], [480, 'apple']];
+const LEVELS = [[0, 'Malý objaviteľ'], [100, 'Slovíčkový prieskumník'], [250, 'Anglický kamarát'], [500, 'Šikovný čitateľ'], [800, 'Lovec slovíčok'], [1200, 'Majster slovíčok'], [1700, 'Anglický rytier'], [2300, 'Slovíčkový kúzelník'], [3000, 'Anglický šampión'], [4000, 'Hviezda angličtiny']];
+const STICKERS = [[10, 'cat'], [30, 'dog'], [60, 'bird'], [90, 'teddy'], [130, 'kite'], [175, 'ball'], [225, 'train'], [280, 'lion'], [335, 'goat'], [400, 'car'], [465, 'doll'], [535, 'apple'], [605, 'bike'], [680, 'puzzle'], [760, 'game'], [845, 'scooter'], [930, 'egg'], [1020, 'fig'], [1110, 'hat'], [1205, 'jam'], [1305, 'pen'], [1405, 'pencil'], [1510, 'rubber'], [1615, 'ruler'], [1725, 'book'], [1835, 'bag'], [1950, 'folder'], [2070, 'door'], [2185, 'window'], [2310, 'bookcase'], [2435, 'ink'], [2560, 'nose'], [2690, 'face'], [2820, 'eyes'], [2955, 'ears'], [3090, 'hands']];
 const HINT_COST = 5;
 const wallet = () => Math.max(0, pget('stars', 0) - pget('spent', 0));
 function levelOf(n) {
@@ -768,20 +795,16 @@ function track(results) {
 const STARPATH = 'M50 10l12 25 27 3-20 19 6 27-25-14-25 14 6-27-20-19 27-3z';
 const medal = (color, inner) => `<path d="M34 6h14l6 30H40zM52 6h14l-6 30H46z" fill="#2F7BE0"/><path d="M48 6h4l2 30h-8z" fill="#E5443B" stroke="none"/><circle cx="50" cy="62" r="30" fill="${color}"/><circle cx="50" cy="62" r="23" fill="#FFFDF5"/><g transform="translate(31 43) scale(.38)">${inner}</g>`;
 const GOLD = '#FFB81C', SILVER = '#B8C4D6', BRONZE = '#D98B4A';
-const BADGES = [
-  ['first', 'Prvý krok', 'Dokonči prvé cvičenie', (s) => s.ex >= 1, BRONZE, 'one'],
-  ['ex10', 'Usilovná včielka', 'Dokonči 10 cvičení', (s) => s.ex >= 10, SILVER, 'pencil'],
-  ['ex30', 'Cvičiaci šampión', 'Dokonči 30 cvičení', (s) => s.ex >= 30, GOLD, 'book'],
-  ['test1', 'Odvážny testovač', 'Urob prvý test', (s) => s.tests >= 1, BRONZE, 'pen'],
-  ['perfect', 'Bez chyby', 'Cvičenie alebo test bez jedinej chyby', (s) => s.perfect >= 1, SILVER, '*'],
-  ['perfect5', 'Päťkrát bez chyby', '5-krát všetko správne', (s) => s.perfect >= 5, GOLD, '*'],
-  ['c50', '50 správnych', '50 správnych odpovedí', (s) => s.correct >= 50, BRONZE, 'apple'],
-  ['c200', '200 správnych', '200 správnych odpovedí', (s) => s.correct >= 200, GOLD, 'kite'],
-  ['st3', 'Tri dni v rade', 'Cvič 3 dni po sebe', (s) => s.best >= 3, SILVER, 'three'],
-  ['st7', 'Celý týždeň', 'Cvič 7 dní po sebe', (s) => s.best >= 7, GOLD, 'seven'],
-  ['w20', 'Zberateľ slov', 'Nauč sa 20 slovíčok', (s) => s.known >= 20, SILVER, 'bag'],
-  ['w50', 'Chodiaci slovník', 'Nauč sa 50 slovíčok', (s) => s.known >= 50, GOLD, 'bookcase'],
+const BADGE_TIERS = [['B', BRONZE, 'bronzová'], ['S', SILVER, 'strieborná'], ['G', GOLD, 'zlatá']];
+const BADGE_KINDS = [
+  ['ex', 'Usilovná včielka', 'Dokonči {n} cvičení', 'ex', [5, 25, 75], 'pencil'],
+  ['test', 'Odvážny testovač', 'Urob {n} testov', 'tests', [1, 10, 30], 'pen'],
+  ['perfect', 'Bez chyby', '{n}-krát cvičenie alebo test bez jedinej chyby', 'perfect', [1, 10, 30], '*'],
+  ['correct', 'Správne odpovede', '{n} správnych odpovedí', 'correct', [100, 500, 2000], 'apple'],
+  ['streak', 'Séria dní', 'Cvič {n} dní po sebe', 'best', [3, 7, 30], 'seven'],
+  ['words', 'Zberateľ slov', 'Nauč sa {n} slovíčok', 'known', [15, 35, 60], 'bag'],
 ];
+const BADGES = BADGE_KINDS.flatMap(([id, title, desc, key, ns, pic]) => ns.map((n, t) => [id + BADGE_TIERS[t][0], `${title} (${BADGE_TIERS[t][2]})`, desc.replace('{n}', n), (s) => (s[key] || 0) >= n, BADGE_TIERS[t][1], pic]));
 const badgeInner = (k) => k === '*' ? `<path d="${STARPATH}" fill="#FFB81C" stroke="#C98500" stroke-width="5"/>` : (PICS[k] || '');
 const badgeSVG = (b) => svg(medal(b[4], badgeInner(b[5])));
 const fullStats = () => Object.assign(stats(), { best: bestStreak(), known: knownWords() });
@@ -791,6 +814,23 @@ function newBadges() {
   if (fresh.length) pset('badges', now.map(b => b[0]));
   return fresh;
 }
+const CATS = [
+  { id: 'write', name: 'Písanie slov', master: 'Majster písania', pic: 'pencil' },
+  { id: 'letters', name: 'Doplň písmenká', master: 'Majster písmenok', pic: 'rubber' },
+  { id: 'match', name: 'Spájanie s obrázkom', master: 'Majster spájania', pic: 'puzzle' },
+  { id: 'sentence', name: 'Slovo do vety', master: 'Majster viet', pic: 'book' },
+  { id: 'which', name: 'Slovo k vete', master: 'Majster čítania', pic: 'folder' },
+];
+const CAT_OF = { write: 'write', letters: 'letters', match: 'match', pick: 'match', sentence: 'sentence', which: 'which' };
+const CAT_LEVELS = [[0, 'Začiatočník'], [30, 'Bronzový stupeň'], [100, 'Strieborný stupeň'], [250, 'Zlatý stupeň'], [500, 'Diamantový stupeň']];
+const catStats = () => { const c = pget('cat', {}); return Object.fromEntries(CATS.map(x => [x.id, Object.assign({ ok: 0, n: 0 }, c[x.id] || {})])); };
+function catLevel(ok) { let i = 0; CAT_LEVELS.forEach((l, k) => { if (ok >= l[0]) i = k; }); return { i, name: CAT_LEVELS[i][1], from: CAT_LEVELS[i][0], next: CAT_LEVELS[i + 1] ? CAT_LEVELS[i + 1][0] : null, nextName: CAT_LEVELS[i + 1] ? CAT_LEVELS[i + 1][1] : null }; }
+function trackCat(type, results) {
+  const id = CAT_OF[type]; if (!id) return;
+  const c = pget('cat', {}); const x = c[id] || { ok: 0, n: 0 };
+  x.n += results.length; x.ok += results.filter(r => r.ok).length; c[id] = x; pset('cat', c);
+}
+const CAT_COLORS = ['#9AA7B8', '#D98B4A', '#B8C4D6', '#FFB81C', '#5FD3E8'];
 const TROPHY = svg('<path d="M30 14h40v22a20 20 0 0 1-40 0z" fill="#FFB81C"/><path d="M30 20H16q0 20 16 22M70 20h14q0 20-16 22" stroke-width="5"/><path d="M44 56h12v14H44z" fill="#C98500"/><rect x="30" y="70" width="40" height="14" rx="3" fill="#2F7BE0"/><path d="M50 22l3 7 7 .6-5.4 4.6 1.7 7-6.3-3.9-6.3 3.9 1.7-7-5.4-4.6 7-.6z" fill="#FFF6D6" stroke="none"/>');
 function meCard() {
   const n = pget('stars', 0), lv = levelOf(n), got = STICKERS.filter(([t]) => n >= t).length, p = curProfile();
@@ -823,11 +863,17 @@ function me() {
         ${tile(`${S.known}/${unlockedWords}`, 'naučených slovíčok')}${tile(st, `${st === 1 ? 'deň' : st > 1 && st < 5 ? 'dni' : 'dní'} v rade (rekord ${S.best})`)}
       </div>
       <p class="muted">${st ? `Cvičíš ${st} ${st === 1 ? 'deň' : st < 5 ? 'dni' : 'dní'} po sebe. Príď aj zajtra!` : 'Dnes si ešte necvičil(a). Stačí jedno cvičenie a začne sa ti počítať séria dní.'} Slovíčko je naučené, keď ho napíšeš alebo vyberieš správne aspoň ${KNOWN_AT}-krát.</p></div>
+    <div class="card"><h3>Moje kategórie</h3><p class="muted">Každé cvičenie má vlastné hviezdičky a vlastný diplom. V ktorom si najlepší?</p>
+      <div class="cats">${(() => { const cs = catStats(); const weakest = CATS.slice().sort((a, b) => cs[a.id].ok - cs[b.id].ok)[0]; return CATS.map(ct => { const x = cs[ct.id], lv = catLevel(x.ok), pct = x.n ? Math.round(x.ok / x.n * 100) : 0, bar = lv.next === null ? 100 : Math.round((x.ok - lv.from) / (lv.next - lv.from) * 100);
+        return `<div class="catrow">${picHTML(ct.pic)}<div class="grow"><strong>${esc(ct.name)}</strong> <span class="catlv" style="background:${CAT_COLORS[lv.i]}">${esc(lv.name)}</span>
+          <div class="progress"><div style="width:${bar}%;background:${CAT_COLORS[Math.min(lv.i + 1, 4)]}"></div></div>
+          <span class="muted">${x.ok} ★ · úspešnosť ${x.n ? pct + ' %' : '–'}${lv.next !== null ? ` · do ďalšieho stupňa ${lv.next - x.ok} ★` : ' · najvyšší stupeň!'}</span>
+          ${x.ok >= CAT_LEVELS[1][0] ? `<button class="chip catdip" data-catdip="${ct.id}">${STAR_SM} Diplom</button>` : ''}</div></div>`; }).join('') + (cs[weakest.id].ok < 30 ? `<p class="cattip">Tip: najmenej hviezdičiek máš v kategórii <strong>${esc(weakest.name)}</strong>. Skús ju potrénovať!</p>` : ''); })()}</div></div>
     <div class="card"><h3>Odmeny</h3><p class="muted">Medaily za snahu. Ťukni na sivú a uvidíš, čo treba urobiť.</p>
       <div class="badges">${BADGES.map(b => `<button class="badge ${eb.includes(b[0]) ? '' : 'locked'}" data-badge="${b[0]}">${badgeSVG(b)}<strong>${esc(b[1])}</strong></button>`).join('')}</div></div>
     <div class="card"><h3>Album nálepiek</h3><p class="muted">Za hviezdičky dostávaš nálepky. Sivé ešte čakajú.</p>
       <div class="album">${STICKERS.map(([t, k]) => `<div class="sticker ${n >= t ? '' : 'locked'}">${picHTML(k)}<span>${n >= t ? '✓' : t + ' ★'}</span></div>`).join('')}</div></div>
-    <button class="big alt dipbtn" data-go="diploma">${STAR(true)} Môj diplom</button>
+    <button class="big alt dipbtn" data-go="diploma" id="dipmain">${STAR(true)} Môj diplom</button>
     <div class="card"><h3>Upraviť profil</h3>
       <label for="nick"><strong>Prezývka</strong> <span class="muted">(nemusíš)</span></label>
       <input id="nick" class="answer-input" style="font-size:1.3rem;text-align:left" maxlength="20" autocomplete="off" placeholder="Prezývka" value="${esc(p.nick)}">
@@ -839,27 +885,35 @@ function me() {
       <p class="muted">Nápoveda stojí ${HINT_COST} hviezdičiek. Úrovne, nálepky a odmeny sa počítajú zo všetkých získaných hviezdičiek, míňaním o ne neprídeš.</p></div>
     <div class="row"><button class="big ghost" data-go="who">Zmeniť, kto cvičí</button></div>
     <footer class="foot"><button id="delprof">Vymazať tento profil</button></footer>`;
+  document.getElementById('dipmain').addEventListener('click', () => { state.dipCat = null; });
+  app.querySelectorAll('[data-catdip]').forEach(b => b.addEventListener('click', () => go('diploma', { dipCat: b.dataset.catdip })));
   app.querySelectorAll('[data-badge]').forEach(b => b.addEventListener('click', () => { const x = BADGES.find(y => y[0] === b.dataset.badge); toast(`${x[1]}: ${x[2]}${eb.includes(x[0]) ? '. Už ju máš!' : ''}`); }));
   app.querySelectorAll('[data-setav]').forEach(b => b.addEventListener('click', () => { updateProfile({ animal: b.dataset.setav, photo: '' }); me(); }));
   document.getElementById('avfile').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) shrinkImage(f).then(url => { updateProfile({ photo: url }); me(); }).catch(() => toast('Tento obrázok sa nepodarilo načítať. Skús iný.')); });
   const inp = document.getElementById('nick'); inp.addEventListener('input', () => { const ps = profiles(); const pr = ps.find(x => x.id === curId()); pr.nick = inp.value.trim().slice(0, 20); store.set('profiles', ps); });
   const del = document.getElementById('delprof'); del.onclick = () => { if (del.dataset.armed) return deleteProfile(); del.dataset.armed = '1'; del.textContent = 'Naozaj vymazať? Hviezdičky sa stratia. Ťukni znova.'; };
 }
+function dipInfo() {
+  const ct = state.dipCat && CATS.find(c => c.id === state.dipCat);
+  if (!ct) { const n = pget('stars', 0); return { cat: null, n, level: levelOf(n).name, line: 'sa učí angličtinu so Slovíčkovom a má' }; }
+  const x = catStats()[ct.id]; return { cat: ct, n: x.ok, level: catLevel(x.ok).name, line: `${ct.master} · ${ct.name}`, pct: x.n ? Math.round(x.ok / x.n * 100) : 0 };
+}
 function diploma() {
-  const n = pget('stars', 0), lv = levelOf(n), name = profLabel(curProfile());
+  const di = dipInfo();
+  const n = di.n, lv = { name: di.level }, name = profLabel(curProfile());
   const got = STICKERS.filter(([t]) => n >= t);
   app.innerHTML = `${topbar('Diplom', 'me')}
     <div class="diploma">
       <div class="dip-avatar">${avHTML(curProfile())}</div>
       <p class="dip-label">DIPLOM</p>
       <p class="dip-name">${esc(name)}</p>
-      <p>sa učí angličtinu so Slovíčkovom a má</p>
+      <p>${esc(di.line)}${di.cat ? '<br>získal(a)' : ''}</p>
       <div class="earned-row" style="justify-content:center">${STAR(true)}<p class="score">${n}</p></div>
       <p>hviezdičiek</p>
       <p class="dip-level">${esc(lv.name)}</p>
-      <p><strong>${earnedBadges().length}</strong> odmien · <strong>${got.length}</strong> nálepiek · <strong>${knownWords()}</strong> naučených slovíčok</p>
+      ${di.cat ? `<p>Úspešnosť: <strong>${di.pct} %</strong></p><div class="dip-catpic">${picHTML(di.cat.pic)}</div>` : `<p><strong>${earnedBadges().length}</strong> odmien · <strong>${got.length}</strong> nálepiek · <strong>${knownWords()}</strong> naučených slovíčok</p>
       ${earnedBadges().length ? `<div class="badges dip-badges">${earnedBadges().map(b => `<div class="badge">${badgeSVG(b)}</div>`).join('')}</div>` : ''}
-      ${got.length ? `<div class="album dip-album">${got.map(([t, k]) => `<div class="sticker">${picHTML(k)}</div>`).join('')}</div>` : ''}
+      ${got.length ? `<div class="album dip-album">${got.map(([t, k]) => `<div class="sticker">${picHTML(k)}</div>`).join('')}</div>` : ''}`}
       <p class="muted">${new Date().toLocaleDateString('sk-SK')}${streakNow() > 1 ? ` · ${streakNow()} dní v rade` : ''}</p>
     </div>
     <div class="card"><h3>Pochváľ sa!</h3>
@@ -876,7 +930,7 @@ const loadImg = (src) => new Promise((ok, no) => { const im = new Image(); im.on
 const svgImg = (markup) => loadImg('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" ')));
 async function diplomaCanvas() {
   const W = 1240, H = 1754, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
-  const n = pget('stars', 0), lv = levelOf(n), p = curProfile(), got = STICKERS.filter(([t]) => n >= t), eb = earnedBadges();
+  const di = dipInfo(), n = di.n, lv = { name: di.level }, p = curProfile(), got = di.cat ? [] : STICKERS.filter(([t]) => n >= t), eb = di.cat ? [] : earnedBadges();
   const D = '"Baloo 2", "Trebuchet MS", sans-serif', B = 'Andika, "Trebuchet MS", sans-serif';
   try { await Promise.all(['800 160px "Baloo 2"', '600 60px "Baloo 2"', '400 40px Andika', '700 40px Andika'].map(f => document.fonts.load(f))); } catch (e) {}
   g.fillStyle = '#FFF8E6'; g.fillRect(0, 0, W, H);
@@ -893,13 +947,14 @@ async function diplomaCanvas() {
   g.restore(); g.beginPath(); g.arc(ax, ay, ar, 0, Math.PI * 2); g.strokeStyle = '#FFB81C'; g.lineWidth = 10; g.stroke();
   center('DIPLOM', 600, `800 170px ${D}`, '#2763D6');
   center(profLabel(p), 740, `800 110px ${D}`);
-  center('sa učí angličtinu so Slovíčkovom a má', 830, `400 46px ${B}`);
+  center(di.cat ? di.line + ' – získal(a)' : di.line, 830, `400 46px ${B}`);
   g.font = `800 130px ${D}`; const nw = g.measureText(String(n)).width; const sx = W / 2 - (nw + 140) / 2;
   star(sx, 860, 120); g.fillStyle = '#2B2B3A'; g.textAlign = 'left'; g.fillText(String(n), sx + 140, 970);
   center('hviezdičiek', 1040, `400 46px ${B}`);
   g.font = `600 60px ${D}`; const lw = g.measureText(lv.name).width + 80; g.fillStyle = '#FFB81C';
   g.beginPath(); g.roundRect(W / 2 - lw / 2, 1075, lw, 92, 46); g.fill(); center(lv.name, 1140, `600 60px ${D}`, '#1C2840');
-  center(`${eb.length} odmien · ${got.length} nálepiek · ${knownWords()} naučených slovíčok`, 1240, `700 40px ${B}`);
+  center(di.cat ? `Úspešnosť ${di.pct} %` : `${eb.length} odmien · ${got.length} nálepiek · ${knownWords()} naučených slovíčok`, 1240, `700 40px ${B}`);
+  if (di.cat) { const im = await svgImg(svg(PICS[di.cat.pic])); g.drawImage(im, W / 2 - 110, 1300, 220, 220); }
   let y = 1280;
   const row = async (items, size) => { const gap = 14, per = Math.floor((W - 260) / (size + gap)); for (let r = 0; r * per < items.length; r++) { const part = items.slice(r * per, r * per + per); const x0 = W / 2 - (part.length * (size + gap) - gap) / 2; for (let k = 0; k < part.length; k++) g.drawImage(await svgImg(part[k]), x0 + k * (size + gap), y, size, size); y += size + gap; } y += 16; };
   if (eb.length) await row(eb.map(badgeSVG), 104);
@@ -943,23 +998,24 @@ async function saveDiploma(kind) {
 
 /* ---------------- hry za odmenu (odomykajú sa úrovňami) ---------------- */
 const GAMES = [
-  { id: 'snake', title: 'Slovíčkový had', desc: 'Prečítaj anglické slovo a zjedz hadíkom správny obrázok.', level: 1, pic: 'goat' },
-  { id: 'bounce', title: 'Odrážaj loptičku', desc: 'Odraz loptičku do tehličky so správnym anglickým slovom.', level: 2, pic: 'ball' },
+  { id: 'pexeso', title: 'Pexeso', desc: 'Nájdi dvojice: obrázok a jeho anglické slovo.', stars: 0, pic: 'puzzle' },
+  { id: 'snake', title: 'Slovíčkový had', desc: 'Prečítaj anglické slovo a zjedz hadíkom správny obrázok.', stars: 500, pic: 'goat' },
+  { id: 'bounce', title: 'Odrážaj loptičku', desc: 'Odraz loptičku do tehličky so správnym anglickým slovom.', stars: 1000, pic: 'ball' },
 ];
 let gameStop = null;
-const gameOpen = (g) => levelOf(pget('stars', 0)).index >= g.level;
+const gameOpen = (g) => pget('stars', 0) >= g.stars;
 const gamePool = () => { const ws = unlockedIds().flatMap(id => lessonWords(lessonById(id))); return ws.length >= 4 ? ws : LESSONS[0].groups.flatMap(x => x.words); };
 const GAME_ICON = svg('<rect x="10" y="28" width="80" height="48" rx="22" fill="#8E55C9"/><path d="M28 44v16M20 52h16" stroke="#fff" stroke-width="6"/><circle cx="66" cy="46" r="5" fill="#FFD43B" stroke="none"/><circle cx="76" cy="56" r="5" fill="#46B05A" stroke="none"/><circle cx="58" cy="58" r="5" fill="#E5443B" stroke="none"/>');
 function gamesCard() {
   const open = GAMES.filter(gameOpen).length, next = GAMES.find(g => !gameOpen(g));
-  return `<button class="achbtn gamesbtn" data-go="games"><span class="achicon">${GAME_ICON}</span><span class="grow"><strong>Hry za odmenu</strong><span class="achstats">${open ? `<span><b>${open}</b>/${GAMES.length} odomknuté</span>` : ''}${next ? `<span>ďalšia na úrovni ${next.level + 1}: ${esc(LEVELS[next.level][1])}</span>` : '<span>všetky odomknuté!</span>'}</span></span><span class="go-arrow">›</span></button>`;
+  return `<button class="achbtn gamesbtn" data-go="games"><span class="achicon">${GAME_ICON}</span><span class="grow"><strong>Hry</strong><span class="achstats">${open ? `<span><b>${open}</b>/${GAMES.length} odomknuté</span>` : ''}${next ? `<span>ďalšia pri ${next.stars} ★</span>` : '<span>všetky odomknuté!</span>'}</span></span><span class="go-arrow">›</span></button>`;
 }
 function games() {
   const n = pget('stars', 0);
-  app.innerHTML = `${topbar('Hry za odmenu')}
-    <div class="card"><p>Hry sa odomykajú za úrovne. Hráš s anglickými slovíčkami z odomknutých lekcií.</p>${levelBar(n)}</div>
+  app.innerHTML = `${topbar('Hry')}
+    <div class="card"><p>Pexeso môžeš hrať hneď. Ďalšie hry sa odomknú za hviezdičky. Hráš so slovíčkami z odomknutých lekcií.</p><p>Máš <strong>${n}</strong> získaných hviezdičiek.</p></div>
     ${GAMES.map(g => { const ok = gameOpen(g), best = pget('best:' + g.id, 0); return `<div class="card gamecard ${ok ? '' : 'locked'}"><div class="earned-row">${picHTML(g.pic)}<div class="grow"><h3>${esc(g.title)}</h3><p class="muted">${esc(g.desc)}</p>
-      ${ok ? (best ? `<p>Tvoj rekord: <strong>${best}</strong></p>` : '') : `<p><strong>Zamknuté.</strong> Odomkne sa na úrovni ${g.level + 1}: ${esc(LEVELS[g.level][1])} (${LEVELS[g.level][0]} hviezdičiek). Chýba ti ${Math.max(0, LEVELS[g.level][0] - n)}.</p>`}</div></div>
+      ${ok ? (best ? `<p>Tvoj rekord: <strong>${best}</strong></p>` : '') : `<p><strong>Zamknuté.</strong> Odomkne sa pri ${g.stars} hviezdičkách. Chýba ti ${Math.max(0, g.stars - n)}.</p>`}</div></div>
       ${ok ? `<button class="big" data-play="${g.id}">Hrať</button>` : ''}</div>`; }).join('')}`;
   app.querySelectorAll('[data-play]').forEach(b => b.addEventListener('click', () => go('play', { game: b.dataset.play })));
 }
@@ -971,6 +1027,7 @@ function play() {
       <div class="gwrap"><canvas id="gcv"></canvas><div class="gover" id="gover"></div></div>
       ${g.id === 'snake' ? `<div class="dpad"><button data-dir="up" aria-label="Hore">▲</button><button data-dir="left" aria-label="Doľava">◀</button><button data-dir="down" aria-label="Dole">▼</button><button data-dir="right" aria-label="Doprava">▶</button></div>`
         : '<p class="muted" style="text-align:center">Pohybuj prstom po ihrisku alebo šípkami ← →.</p>'}</div>`;
+  if (g.id === 'pexeso') return pexesoGame(g);
   (g.id === 'snake' ? snakeGame : bounceGame)(g);
 }
 function gameSetup(cssW, cssH) {
@@ -990,6 +1047,35 @@ function gameEnd(id, score, restart) {
 }
 async function gameImgs(words) { const m = {}; await Promise.all(words.map(async w => { try { m[w.pic] = await svgImg(svg(PICS[w.pic] || '')); } catch (e) {} })); return m; }
 const pickTarget = (pool, last) => { let w; do { w = pool[Math.floor(Math.random() * pool.length)]; } while (pool.length > 1 && last && w.en === last.en); return w; };
+
+/* Pexeso: dvojica = obrázok + anglické slovo */
+function pexesoGame(meta) {
+  const box = app.querySelector('.gamebox');
+  const setup = (pairs) => {
+    const ws = shuffle(gamePool()).filter((w, i, a) => a.findIndex(x => x.pic === w.pic) === i).slice(0, pairs);
+    const cards = shuffle(ws.flatMap(w => [{ w, kind: 'pic' }, { w, kind: 'word' }]));
+    let open = [], found = 0, moves = 0, lock = false;
+    box.innerHTML = `<div class="gamehud"><span class="ghint">Nájdi obrázok a jeho slovo</span><span class="gstats">Ťahy: <b id="pmoves">0</b></span></div>
+      <div class="pexgrid p${pairs}">${cards.map((c, i) => `<button class="pcard" data-i="${i}" aria-label="Karta ${i + 1}"><span class="pback">?</span><span class="pface">${c.kind === 'pic' ? picHTML(c.w.pic) : `<b lang="en">${esc(c.w.en)}</b>`}</span></button>`).join('')}</div>
+      <div class="gover" id="gover" hidden></div>`;
+    box.querySelectorAll('.pcard').forEach(b => b.addEventListener('click', () => {
+      const i = +b.dataset.i; if (lock || b.classList.contains('up')) return;
+      b.classList.add('up'); open.push(i);
+      if (cards[i].kind === 'word') speak(cards[i].w.en);
+      if (open.length < 2) return;
+      moves++; document.getElementById('pmoves').textContent = moves;
+      const [a, c] = open; open = [];
+      if (cards[a].w.pic === cards[c].w.pic && cards[a].kind !== cards[c].kind) {
+        found++; [a, c].forEach(k => box.querySelector(`[data-i="${k}"]`)?.classList.add('done')); sfx('pair'); setTimeout(() => speak(cards[a].w.en), 300);
+        if (found === pairs) setTimeout(() => { sfx('good'); const key = 'best:pexeso', best = pget(key, 0), rec = !best || moves < best; if (rec) pset(key, moves);
+          gameOverlay(`<h3>${rec ? 'Nový rekord!' : 'Hotovo!'}</h3><p>Všetky dvojice si našiel(a) na <strong>${moves}</strong> ťahov.</p>${!rec ? `<p>Rekord: ${best} ťahov</p>` : ''}`, 'Hrať znova', () => setup(pairs)); }, 700);
+      } else { lock = true; setTimeout(() => { [a, c].forEach(k => box.querySelector(`[data-i="${k}"]`)?.classList.remove('up')); lock = false; }, 1100); }
+    }));
+  };
+  box.innerHTML = `<div class="gover static"><h3>Pexeso</h3><p>Karty sú otočené. Hľadaj dvojice: obrázok a jeho anglické slovo. Menej ťahov je lepšie.</p>
+    <div class="row"><button class="big" data-pairs="6">Ľahké (6 dvojíc)</button><button class="big alt" data-pairs="8">Ťažšie (8 dvojíc)</button></div></div>`;
+  box.querySelectorAll('[data-pairs]').forEach(b => b.onclick = () => setup(+b.dataset.pairs));
+}
 
 /* Had: anglické slovo hore, hadík zje správny obrázok */
 async function snakeGame(meta) {
@@ -1347,7 +1433,7 @@ function runView() {
 function answered(res, q) {
   q.querySelector('#hintbtn')?.remove(); q.hint = null;
   const r = state.run; r.results.push(...res.results);
-  const gained = res.results.filter(x => x.ok).length; track(res.results);
+  const gained = res.results.filter(x => x.ok).length; track(res.results); trackCat((r.items[r.i] || {}).type, res.results);
   if (gained) r.newStickers = (r.newStickers || []).concat(addStars(gained)), r.earned = (r.earned || 0) + gained;
   if (r.mode === 'test') return next();
   const fb = document.createElement('div');
@@ -1453,9 +1539,9 @@ function result() {
   const msg = stars === 3 ? 'Úžasné! Vieš to výborne.' : stars === 2 ? 'Dobrá práca! Ešte trochu precvičiť.' : 'Nevadí, skúsme to znova spolu.';
   if (!r.awarded) { r.awarded = true; r.bonus = r.mode === 'test' ? 5 + (pct >= .9 ? 5 : 0) : 3; r.newStickers = (r.newStickers || []).concat(addStars(r.bonus)); r.earned = (r.earned || 0) + r.bonus;
     const st = stats(); st[r.mode === 'test' ? 'tests' : 'ex']++; if (total >= 5 && good === total) st.perfect++; pset('stats', st); r.newBadges = newBadges();
-    const gs = pget('gamesSeen', []); r.newGames = GAMES.filter(g => gameOpen(g) && !gs.includes(g.id)); if (r.newGames.length) pset('gamesSeen', GAMES.filter(gameOpen).map(g => g.id)); }
+    const gs = pget('gamesSeen', []); r.newGames = GAMES.filter(g => g.stars > 0 && gameOpen(g) && !gs.includes(g.id)); if (r.newGames.length) pset('gamesSeen', GAMES.filter(gameOpen).map(g => g.id)); }
   const earnedHTML = `<div class="card earned"><div class="earned-row">${STAR(true)}<div><p class="score">+${r.earned}</p><p class="muted">hviezdičiek (z toho bonus ${r.bonus})</p></div></div><p>Spolu máš <strong>${pget('stars', 0)}</strong> hviezdičiek · ${esc(levelOf(pget('stars', 0)).name)}</p>
-    ${r.newStickers.length ? `<div class="newsticker"><h3>Nová nálepka do albumu!</h3><div class="album">${r.newStickers.map(([t, k]) => `<div class="sticker">${picHTML(k)}</div>`).join('')}</div></div>` : ''}${r.newBadges && r.newBadges.length ? `<div class="newsticker"><h3>Nová odmena!</h3><div class="badges">${r.newBadges.map(b => `<div class="badge">${badgeSVG(b)}<strong>${esc(b[1])}</strong></div>`).join('')}</div></div>` : ''}${r.newGames && r.newGames.length ? `<div class="newsticker"><h3>Nová úroveň! Odomkla sa hra</h3>${r.newGames.map(g => `<p class="earned-row">${picHTML(g.pic)}<strong>${esc(g.title)}</strong></p>`).join('')}<button class="big alt" data-go="games">Ísť sa hrať</button></div>` : ''}<button class="big ghost" data-go="me">Moje úspechy</button></div>`;
+    ${r.newStickers.length ? `<div class="newsticker"><h3>Nová nálepka do albumu!</h3><div class="album">${r.newStickers.map(([t, k]) => `<div class="sticker">${picHTML(k)}</div>`).join('')}</div></div>` : ''}${r.newBadges && r.newBadges.length ? `<div class="newsticker"><h3>Nová odmena!</h3><div class="badges">${r.newBadges.map(b => `<div class="badge">${badgeSVG(b)}<strong>${esc(b[1])}</strong></div>`).join('')}</div></div>` : ''}${r.newGames && r.newGames.length ? `<div class="newsticker"><h3>Odomkla sa nová hra!</h3>${r.newGames.map(g => `<p class="earned-row">${picHTML(g.pic)}<strong>${esc(g.title)}</strong></p>`).join('')}<button class="big alt" data-go="games">Ísť sa hrať</button></div>` : ''}<button class="big ghost" data-go="me">Moje úspechy</button></div>`;
   if (r.mode === 'test' && !r.logged) { r.logged = true; const log = pget('tests', []); log.push({ t: Date.now(), kind: r.kind, lesson: state.lessonId, good, total, missed: missed.map(w => w.en) }); pset('tests', log.slice(-50)); }
   app.innerHTML = `${topbar(esc(r.title), r.back)}
     <div class="card question"><div class="stars">${[1, 2, 3].map(i => STAR(i <= stars)).join('')}</div>
