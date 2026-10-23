@@ -486,7 +486,7 @@ const STAR = (on) => svg(`<path d="M50 10l12 25 27 3-20 19 6 27-25-14-25 14 6-27
 const W = (en, sk, pic, sent, avoid = []) => ({ en, sk, pic, sent, avoid });
 const LESSONS = [
   {
-    id: 1, title: 'Lekcia 1', name: 'Hello!', book: 'Starter',
+    id: 1, title: 'Lekcia 0', name: 'Hello!', book: 'Starter',
     groups: [
       { id: 'cisla', name: 'Čísla 1–10', words: [
         W('one', 'jeden', 'one', 'I have got ___ nose.'),
@@ -521,7 +521,7 @@ const LESSONS = [
     ],
   },
   {
-    id: 2, title: 'Lekcia 2', name: "What's this?", book: 'Unit 1',
+    id: 2, title: 'Lekcia 1', name: "What's this?", book: 'Unit 1',
     groups: [
       { id: 'trieda', name: 'Školské veci', words: [
         W('pen', 'pero', 'pen', 'My ___ has got blue ink.'),
@@ -546,7 +546,7 @@ const LESSONS = [
     ],
   },
   {
-    id: 3, title: 'Lekcia 3', name: 'Playtime!', book: 'Unit 2',
+    id: 3, title: 'Lekcia 2', name: 'Playtime!', book: 'Unit 2',
     groups: [
       { id: 'hracky', name: 'Hračky', words: [
         W('doll', 'bábika', 'doll', 'My ___ has got long hair and a dress.'),
@@ -569,7 +569,7 @@ const LESSONS = [
     ],
   },
   {
-    id: 4, title: 'Lekcia 4', name: 'This is my nose!', book: 'Unit 3',
+    id: 4, title: 'Lekcia 3', name: 'This is my nose!', book: 'Unit 3',
     groups: [
       { id: 'telo', name: 'Moje telo', words: [
         W('arms', 'paže', 'arms', 'I wave my ___ in the air.', ['hands']),
@@ -673,7 +673,8 @@ const EXERCISES = [
   { kind: 'sentence', n: 4, title: 'Doplň slovo do vety', desc: 'Vyber slovo, ktoré patrí do vety', count: 10 },
   { kind: 'which', n: 5, title: 'Priraď slovo k vete', desc: 'Ktorá veta patrí k slovu?', count: 8 },
 ];
-const pdfName = (kind, lessonId) => kind === 'summary' ? 'listy/suhrnny-test.pdf' : `listy/lekcia-${lessonId}-${kind === 'test' ? 'test' : 'cvicenie-' + EXERCISES.find(e => e.kind === kind).n}.pdf`;
+const lnum = id => id - 1; // čísla lekcií ako v škole (Starter = 0); id ostávajú kvôli uloženému pokroku
+const pdfName = (kind, lessonId) => kind === 'summary' ? 'listy/suhrnny-test.pdf' : `listy/lekcia-${lnum(lessonId)}-${kind === 'test' ? 'test' : 'cvicenie-' + EXERCISES.find(e => e.kind === kind).n}.pdf`;
 const printLink = (kind, lessonId) => `<button class="printlink" data-pdf="${pdfName(kind, lessonId)}" title="Stiahnuť pracovný list A4 s riešením (PDF)">Tlačiť</button>`;
 
 /* ---------------- obrazovky ---------------- */
@@ -867,7 +868,7 @@ function trackCat(type, results) {
   const all = lcAll(); const before = {};
   results.forEach(r => { const k = (r.w && r.w.lesson) + ':' + id; const y = Object.assign({ ok: 0, n: 0, r: '' }, all[k] || {}); if (!(k in before)) before[k] = catLevel(y).i; y.n++; if (r.ok) y.ok++; y.r = (y.r + (r.ok ? '1' : '0')).slice(-RECENT); all[k] = y; });
   pset('catL', all);
-  Object.keys(before).forEach(k => { const lv = catLevel(all[k]); if (lv.i > before[k]) { const [lid] = k.split(':'); toast(`Nový stupeň: ${lv.name} · Lekcia ${lid} · ${CATS.find(c => c.id === id).name}!`); } });
+  Object.keys(before).forEach(k => { const lv = catLevel(all[k]); if (lv.i > before[k]) { const [lid] = k.split(':'); toast(`Nový stupeň: ${lv.name} · Lekcia ${lnum(+lid)} · ${CATS.find(c => c.id === id).name}!`); } });
   if (weekCat().id === id) { const w = weekState(); w.c += results.filter(r => r.ok).length; if (!w.done && w.c >= WEEK_GOAL) { w.done = true; addStars(WEEK_BONUS); pset('weeksDone', pget('weeksDone', 0) + 1); setTimeout(() => toast(`Výzva týždňa splnená! Bonus +${WEEK_BONUS} hviezdičiek.`), 2500); } pset('week', w); }
 }
 function weekCard() {
@@ -912,7 +913,7 @@ function me() {
       <p class="muted">${st ? `Cvičíš ${st} ${st === 1 ? 'deň' : st < 5 ? 'dni' : 'dní'} po sebe. Príď aj zajtra!` : 'Dnes si ešte necvičil(a). Stačí jedno cvičenie a začne sa ti počítať séria dní.'} Slovíčko je naučené, keď ho napíšeš alebo vyberieš správne aspoň ${KNOWN_AT}-krát.</p></div>
     <div class="card"><h3>Moje kategórie po lekciách</h3><p class="muted">V každej lekcii má každé cvičenie vlastné stupne: bronz, striebro, zlato a diamant. Na vyšší stupeň treba hviezdičky aj presnosť.</p>
       <p class="diamsum">${svg('<path d="M50 12l26 22-26 54-26-54z" fill="#5FD3E8"/><path d="M24 34h52M50 12l-10 22 10 54 10-54z" stroke-width="2"/>')}<span>Diamanty: <b>${diamonds()}</b> / ${unlockedIds().length * CATS.length}</span></p>
-      <div class="chips">${unlockedIds().map(id => `<button class="chip" data-catl="${id}" aria-pressed="${id === catLessonSel()}">Lekcia ${id}</button>`).join('')}</div>
+      <div class="chips">${unlockedIds().map(id => `<button class="chip" data-catl="${id}" aria-pressed="${id === catLessonSel()}">Lekcia ${lnum(id)}</button>`).join('')}</div>
       <div class="cats">${(() => { const lid = catLessonSel(), all = lcAll(); const rows = CATS.map(ct => { const x = lcGet(lid, ct.id, all), lv = catLevel(x), acc = Math.round(lv.acc * 100);
         const bar = lv.next === null ? 100 : Math.max(0, Math.min(100, Math.round((x.ok - lv.from) / (lv.next - lv.from) * 100)));
         const need = lv.next === null ? 'najvyšší stupeň!' : x.ok < lv.next ? `do ďalšieho stupňa ${lv.next - x.ok} ★` : x.r.length < 20 ? 'ešte zopár odpovedí' : `na ${lv.nextName.split(' ')[0].toLowerCase()} treba presnosť ${Math.round(lv.needAcc * 100)} %`;
@@ -921,7 +922,7 @@ function me() {
           <span class="muted">${x.ok} ★ · presnosť ${x.r.length ? acc + ' %' : '–'} · ${need}</span>
           ${lv.i >= 1 ? `<button class="chip catdip" data-catdip="${ct.id}">${STAR_SM} Diplom</button>` : ''}</div></div>` }; });
         const weakest = rows.slice().sort((a, b) => a.lv.i - b.lv.i || a.x.ok - b.x.ok)[0];
-        return rows.map(r => r.html).join('') + (weakest.lv.i < 4 ? `<p class="cattip">Tip: v Lekcii ${lid} ti najviac chýba <strong>${esc(weakest.ct.name)}</strong>. Skús ju potrénovať!</p>` : '<p class="cattip">Všetko na diamant! Si hviezda tejto lekcie.</p>'); })()}</div></div>
+        return rows.map(r => r.html).join('') + (weakest.lv.i < 4 ? `<p class="cattip">Tip: v Lekcii ${lnum(lid)} ti najviac chýba <strong>${esc(weakest.ct.name)}</strong>. Skús ju potrénovať!</p>` : '<p class="cattip">Všetko na diamant! Si hviezda tejto lekcie.</p>'); })()}</div></div>
     <div class="card"><h3>Odmeny</h3><p class="muted">Medaily za snahu. Ťukni na sivú a uvidíš, čo treba urobiť.</p>
       <div class="badges">${BADGES.map(b => `<button class="badge ${eb.includes(b[0]) ? '' : 'locked'}" data-badge="${b[0]}">${badgeSVG(b)}<strong>${esc(b[1])}</strong></button>`).join('')}</div></div>
     <div class="card"><h3>Album nálepiek</h3><p class="muted">Za hviezdičky dostávaš nálepky. Sivé ešte čakajú.</p>
@@ -951,7 +952,7 @@ function catLessonSel() { const u = unlockedIds(); if (u.includes(state.catLesso
 function dipInfo() {
   const ct = state.dipCat && CATS.find(c => c.id === state.dipCat);
   if (!ct) { const n = pget('stars', 0); return { cat: null, n, level: levelOf(n).name, line: 'sa učí angličtinu so Slovíčkovom a má' }; }
-  const lid = state.dipLesson || catLessonSel(), x = lcGet(lid, ct.id), lv = catLevel(x); return { cat: ct, n: x.ok, level: lv.name, line: `Lekcia ${lid} · ${ct.master}`, pct: Math.round(lv.acc * 100) };
+  const lid = state.dipLesson || catLessonSel(), x = lcGet(lid, ct.id), lv = catLevel(x); return { cat: ct, n: x.ok, level: lv.name, line: `Lekcia ${lnum(lid)} · ${ct.master}`, pct: Math.round(lv.acc * 100) };
 }
 function diploma() {
   const di = dipInfo();
@@ -1351,7 +1352,7 @@ function qzTestHTML(c, secs, group, size) {
     if (id === 'match') inner = `<div class="qm">${s.items.map((it, i) => { no++; keys.push([no, `${L[s.right.indexOf(it.w)]}) ${it.w.en}`]); return `<div class="l"><b>${no}.</b>${pic(it.w)}<i></i></div><div></div><div class="r"><i></i>${L[i]}) ${esc(s.right[i].en)}</div>`; }).join('')}</div>`;
     return `<div class="qsec"><p class="qinstr">${esc(s.t.instr)}</p>${inner}</div>`;
   }).join('');
-  const lessons = c.lessons.length === 1 ? 'Lekcia ' + c.lessons[0] : 'Lekcie ' + c.lessons.join(', ');
+  const lessons = c.lessons.length === 1 ? 'Lekcia ' + lnum(c.lessons[0]) : 'Lekcie ' + c.lessons.map(lnum).join(', ');
   const html = `<div class="qz ${size}"><div class="qhead"><b>${esc(c.title || 'Test z angličtiny')}</b><span>${lessons}${group ? ` · <span class="qgrp">${group}</span>` : ''}</span></div>
     <div class="qname"><span>Meno: ______________________</span><span>Body: ____ / ${n}</span></div>${body}</div>`;
   return { html, keys, n };
@@ -1615,7 +1616,7 @@ function parents() {
   const unl = unlockedIds();
   let unlockHTML;
   if (CONFIG.unlockMode === 'central') {
-    unlockHTML = `<p>Lekcie odomyká správca triedy podľa toho, čo trieda práve preberá. Všetci rodičia vidia rovnaké lekcie. Momentálne odomknuté: <strong>${unl.map(id => 'lekcia ' + id).join(', ') || 'žiadna'}</strong>.</p>`;
+    unlockHTML = `<p>Lekcie odomyká správca triedy podľa toho, čo trieda práve preberá. Všetci rodičia vidia rovnaké lekcie. Momentálne odomknuté: <strong>${unl.map(id => 'lekcia ' + lnum(id)).join(', ') || 'žiadna'}</strong>.</p>`;
   } else if (!state.parentOk) {
     unlockHTML = `<p>Lekcie si odomykáte sami. Aby ich neodomklo dieťa, odpovedzte najprv na otázku:</p>
       <label for="pin"><strong>Koľko je 13 × 7?</strong></label><div class="row"><input id="pin" class="answer-input" inputmode="numeric" autocomplete="off" style="max-width:200px"><button class="big" id="pinok">Pokračovať</button></div>`;
@@ -1631,7 +1632,7 @@ function parents() {
     <div class="card"><h3>Odomknuté lekcie</h3>${unlockHTML}</div>
     <div class="card"><h3>Pracovné listy na tlač (A4)</h3><p class="muted">Ťuknite na list, potvrďte stiahnutie a stiahnuté PDF vytlačte. Riešenie pre rodiča je na poslednej strane, stačí ju nevytlačiť pre dieťa.</p>
       ${sheets}${unl.length ? `<div class="sheets"><button class="sheetbtn" data-pdf="${pdfName('summary')}">Súhrnný test (všetky odomknuté lekcie)</button></div>` : ''}</div>
-    <div class="card"><h3>Posledné testy na tomto zariadení</h3><p class="muted">Ukladajú sa len v tomto prehliadači a nikam sa neposielajú.</p>${log.length ? log.map(t => `<p>${new Date(t.t).toLocaleDateString('sk-SK')} · ${esc(t.who)} · ${t.kind === 'summary' ? 'Súhrnný test' : 'Test z lekcie ' + t.lesson}: <strong>${t.good} z ${t.total}</strong>${t.missed.length ? ` · zopakovať: ${esc(t.missed.join(', '))}` : ''}</p>`).join('') : '<p class="muted">Zatiaľ žiadny test.</p>'}</div>
+    <div class="card"><h3>Posledné testy na tomto zariadení</h3><p class="muted">Ukladajú sa len v tomto prehliadači a nikam sa neposielajú.</p>${log.length ? log.map(t => `<p>${new Date(t.t).toLocaleDateString('sk-SK')} · ${esc(t.who)} · ${t.kind === 'summary' ? 'Súhrnný test' : 'Test z lekcie ' + lnum(t.lesson)}: <strong>${t.good} z ${t.total}</strong>${t.missed.length ? ` · zopakovať: ${esc(t.missed.join(', '))}` : ''}</p>`).join('') : '<p class="muted">Zatiaľ žiadny test.</p>'}</div>
     <div class="card"><h3>Zvuky a výslovnosť</h3><label class="toggle"><input type="checkbox" id="sfxon" ${store.get('mute', false) ? '' : 'checked'}> Zvuk po odpovedi (tadá / dong)</label>
       <p class="muted">Tlačidlá s reproduktorom sa ukážu len vtedy, keď má zariadenie nainštalovaný anglický hlas, aby slová nečítal slovenský hlas so zlou výslovnosťou. ${'<span class="voice-on">Toto zariadenie anglický hlas má.</span><span class="voice-off">Toto zariadenie ho teraz nemá. Dá sa pridať v nastaveniach telefónu alebo počítača (Prevod textu na reč / Jazyk a reč, angličtina).</span>'}</p></div>
     <div class="note">Obrázky v aplikácii sú vlastné kresby. Z učebnice sa používajú len slovíčka, vety sú napísané nanovo.</div>`;
@@ -1688,7 +1689,7 @@ if (WEB) {
     if (JSON.stringify(list) === JSON.stringify(CONFIG.unlocked)) return;
     CONFIG.unlocked = list; store.set('remoteUnlocked', list);
     if (['home', 'who', 'parents'].includes(state.view)) render();
-    if (added.length) toast(added.length === 1 ? `Nová lekcia ${added[0]} je odomknutá!` : `Nové lekcie sú odomknuté: ${added.join(', ')}`);
+    if (added.length) toast(added.length === 1 ? `Nová lekcia ${lnum(added[0])} je odomknutá!` : `Nové lekcie sú odomknuté: ${added.map(lnum).join(', ')}`);
   }).catch(() => {});
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
@@ -1701,7 +1702,7 @@ function sheetHTML(kind, lessonId) {
   rand = rng(kind.length * 1000 + (lessonId || 0) * 17 + 7);
   const ids = kind === 'summary' ? unlockedIds() : [lessonId];
   const all = ids.flatMap(id => lessonWords(lessonById(id)));
-  const where = kind === 'summary' ? 'Súhrnný test · lekcie ' + ids.join(', ') : lessonById(lessonId).title;
+  const where = kind === 'summary' ? 'Súhrnný test · lekcie ' + ids.map(lnum).join(', ') : lessonById(lessonId).title;
   const ex = EXERCISES.find(e => e.kind === kind);
   const title = ex ? `${where} · Cvičenie ${ex.n}: ${ex.title}` : kind === 'test' ? `${where} · Test` : where;
   const pages = []; const keys = [];
