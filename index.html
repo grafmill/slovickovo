@@ -270,16 +270,19 @@ footer.foot button { background: none; border: none; color: var(--muted); text-d
 .catlv { display: inline-block; font-size: .8rem; font-weight: 700; border-radius: 999px; padding: 1px 8px; color: #1C2840; }
 .cattip { background: var(--accent-soft); border-radius: 12px; padding: 8px 12px; margin: 0; }
 .dip-catpic .pic { width: 120px; height: 120px; }
-.pexgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.pexgrid.p8 { grid-template-columns: repeat(4, 1fr); }
-.pcard { position: relative; aspect-ratio: 4 / 5; border: none; border-radius: 14px; cursor: pointer; padding: 0; background: var(--primary); color: var(--primary-ink); font: inherit; transition: transform .25s; }
+.pexgrid { --c: 3; --r: 4; display: grid; grid-template-columns: repeat(var(--c), 1fr); gap: 8px; margin: 0 auto; width: 100%;
+  /* celé pexeso sa zmestí na výšku obrazovky (karta má pomer 4:5) */
+  max-width: calc((100dvh - var(--pextop, 260px) - (var(--r) - 1) * 8px) / var(--r) * var(--ar, .8) * var(--c) + (var(--c) - 1) * 8px); }
+.pexgrid.p8 { --c: 4; }
+@media (min-aspect-ratio: 1/1) { .pexgrid { --ar: 1; } .pexgrid.p6 { --c: 4; --r: 3; } .pexgrid .pcard { aspect-ratio: 1; } }
+.pcard { container-type: inline-size; position: relative; aspect-ratio: 4 / 5; border: none; border-radius: 14px; cursor: pointer; padding: 0; background: var(--primary); color: var(--primary-ink); font: inherit; transition: transform .25s; }
 .pcard .pback { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; }
 .pcard .pface { display: none; }
 .pcard.up { background: var(--surface); color: var(--ink); border: 3px solid var(--accent); transform: rotateY(0); }
 .pcard.up .pback { display: none; } .pcard.up .pface { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 6px; }
 .pcard.done { border-color: var(--good); background: var(--good-soft); }
 .pcard .pface .pic { width: 80%; height: auto; aspect-ratio: 1; }
-.pcard .pface b { font-family: var(--font-display); font-size: 1.25rem; overflow-wrap: anywhere; line-height: 1.1; }
+.pcard .pface b { font-family: var(--font-display); font-size: min(1.25rem, 16cqw); overflow-wrap: anywhere; line-height: 1.1; }
 .pexgrid.p8 .pcard .pface b { font-size: 1.05rem; }
 .gover.static { position: static; background: none; }
 
