@@ -403,7 +403,7 @@ body.printmode { background: #fff; color: #111; font-size: 13pt; }
    ===================================================================== */
 const CONFIG = {
   unlockMode: 'central',
-  unlocked: [1, 2, 3, 4],
+  unlocked: [1, 2, 3, 4, 5],
 };
 /* Webová verzia (vlastný server): zoznam odomknutých lekcií sa číta zo súboru lekcie.json */
 const WEB = true;
@@ -436,6 +436,25 @@ function figure(part) {
     <circle cx="22" cy="63" r="5.5" fill="${c('hands')}"/><circle cx="78" cy="63" r="5.5" fill="${c('hands')}"/>
     <circle cx="50" cy="19" r="12" fill="${SKIN}"/><path d="M38 17q1-11 12-11t12 11q-6-5-12-5t-12 5z" fill="#5A3A22"/><circle cx="46" cy="19" r="1.6" fill="${INK}"/><circle cx="54" cy="19" r="1.6" fill="${INK}"/><path d="M46 24q4 3 8 0" stroke-width="2"/></g>`;
 }
+
+/* ľudia (povolania, rodina): hlava + ramená */
+const HAIR = { brown: '#5A3A22', dark: '#2B2B3A', blond: '#E2B33C', grey: '#D5D8DE' };
+function bust({ shirt = '#5FA8E8', hair = 'short', hc = HAIR.brown, skin = SKIN, kid = false, back = '', over = '', mouth = true }) {
+  const cy = kid ? 48 : 42, r = kid ? 16 : 18, t = cy - r;
+  const shoulders = kid ? `<path d="M26 100q0-26 24-26t24 26z" fill="${shirt}"/>` : `<path d="M14 100q0-30 36-30t36 30z" fill="${shirt}"/>`;
+  const hairBack = hair === 'long' ? `<path d="M${50 - r - 3} ${cy}q0-${r + 7} ${r + 3}-${r + 7}t${r + 3} ${r + 7}v${r + 6}h-${2 * r + 6}z" fill="${hc}"/>` : '';
+  const top = {
+    short: `<path d="M${50 - r} ${cy - 2}q0-${r + 1} ${r}-${r + 1}t${r} ${r + 1}q-6-9-${r}-9t-${r} 9z" fill="${hc}"/>`,
+    long: `<path d="M${50 - r} ${cy - 3}q2-${r - 1} ${r}-${r - 1}t${r} ${r - 1}q-8-7-${r}-7t-${r} 7z" fill="${hc}"/>`,
+    bun: `<circle cx="50" cy="${t - 4}" r="8" fill="${hc}"/><path d="M${50 - r} ${cy - 2}q0-${r + 1} ${r}-${r + 1}t${r} ${r + 1}q-6-8-${r}-8t-${r} 8z" fill="${hc}"/>`,
+    bald: `<path d="M${50 - r - 1} ${cy + 2}q-2-12 6-17M${50 + r + 1} ${cy + 2}q2-12-6-17" stroke="${hc}" stroke-width="6"/>`,
+    pigtails: `<circle cx="${50 - r - 4}" cy="${cy - 4}" r="6" fill="${hc}"/><circle cx="${50 + r + 4}" cy="${cy - 4}" r="6" fill="${hc}"/><path d="M${50 - r} ${cy - 2}q0-${r + 1} ${r}-${r + 1}t${r} ${r + 1}q-6-9-${r}-9t-${r} 9z" fill="${hc}"/>`,
+    none: '',
+  }[hair];
+  return `${back}${shoulders}<rect x="45" y="${cy + r - 4}" width="10" height="8" fill="${skin}" stroke="none"/>${hairBack}<circle cx="50" cy="${cy}" r="${r}" fill="${skin}"/>
+    <circle cx="${50 - 6}" cy="${cy}" r="2.2" fill="${INK}"/><circle cx="${50 + 6}" cy="${cy}" r="2.2" fill="${INK}"/>${mouth ? `<path d="M45 ${cy + 7}q5 4 10 0" stroke-width="2.5"/>` : ''}${top}${over}`;
+}
+const GLASSES = (cy = 42) => `<circle cx="44" cy="${cy}" r="5.5" fill="none" stroke-width="2"/><circle cx="56" cy="${cy}" r="5.5" fill="none" stroke-width="2"/><path d="M49.5 ${cy}h1" stroke-width="2"/>`;
 
 const PICS = {
   sunday: day('NE', true), monday: day('PO'), tuesday: day('UT'), wednesday: day('ST'), thursday: day('ŠT'), friday: day('PI'), saturday: day('SO', true),
@@ -478,6 +497,20 @@ const PICS = {
   arms: figure('arms'), legs: figure('legs'), hands: figure('hands'), shoulders: figure('shoulders'),
   nose: face('nose'), face: face('face'), ears: face('ears'), eyes: face('eyes'), eyebrows: face('eyebrows'),
   fingers: `<rect x="28" y="50" width="44" height="40" rx="12" fill="#F8D9BE"/>${[30, 40, 50, 60].map((x, i) => `<rect x="${x}" y="${16 + (i === 0 || i === 3 ? 8 : 0)}" width="9" height="40" rx="4.5" fill="#FF8A1F"/>`).join('')}<rect x="66" y="56" width="9" height="26" rx="4.5" fill="#FF8A1F" transform="rotate(-40 70 70)"/>`,
+  /* povolania */
+  teacher: `<rect x="6" y="6" width="88" height="46" rx="3" fill="#2E6B4F" stroke-width="4" stroke="#B9814F"/><text x="83" y="24" font-size="11" font-weight="700" fill="#fff" stroke="none" text-anchor="middle" font-family="Andika, sans-serif">ABC</text><path d="M12 18h14M12 28h12M76 34h14" stroke="#fff" stroke-width="2"/>${bust({ shirt: '#46B05A', hair: 'long', hc: HAIR.brown, over: GLASSES() + '<path d="M70 82L88 46" stroke="#B9814F" stroke-width="4"/>' })}`,
+  pupil: `<rect x="18" y="72" width="64" height="26" rx="3" fill="#C48653"/>${bust({ kid: true, shirt: '#E5443B', hair: 'short', hc: HAIR.dark, back: '<rect x="60" y="62" width="22" height="26" rx="6" fill="#FFC93C"/>' })}<rect x="28" y="78" width="44" height="14" rx="2" fill="#fff"/><path d="M50 78v14" stroke-width="2"/>`,
+  housewife: bust({ shirt: '#8E55C9', hair: 'bun', hc: HAIR.brown, over: `<path d="M34 74h32v26H34z" fill="#fff"/><circle cx="42" cy="84" r="2.5" fill="#8E55C9" stroke="none"/><circle cx="56" cy="90" r="2.5" fill="#8E55C9" stroke="none"/><circle cx="50" cy="80" r="2.5" fill="#8E55C9" stroke="none"/><path d="M76 96L90 66" stroke="#B9814F" stroke-width="4"/><ellipse cx="91" cy="62" rx="5" ry="7" fill="#B9814F"/>` }),
+  fireman: bust({ shirt: '#2B2B3A', hair: 'none', over: `<path d="M28 88h44M28 96h44" stroke="#FFD43B" stroke-width="5"/><path d="M28 40q0-26 22-26t22 26z" fill="#E5443B"/><path d="M24 40h52" stroke-width="5" stroke="#B71C1C"/><rect x="44" y="20" width="12" height="12" rx="2" fill="#FFD43B"/><path d="M78 100V78q0-8 8-8h6" stroke="#5A6275" stroke-width="6"/><path d="M92 62q4 8 0 16" stroke="#5FA8E8" stroke-width="3"/>` }),
+  pilot: bust({ shirt: '#fff', hair: 'short', hc: HAIR.dark, over: `<path d="M50 72l-5 6 5 22 5-22z" fill="#1B3F8F"/><path d="M30 38q0-16 20-16t20 16z" fill="#1B3F8F"/><path d="M26 38h48" stroke-width="5" stroke="#2B2B3A"/><circle cx="50" cy="30" r="4" fill="#FFC93C"/><path d="M62 82h16" stroke="#FFC93C" stroke-width="4"/><path d="M14 86l10-4" stroke="#FFC93C" stroke-width="3"/>` }),
+  doctor: bust({ shirt: '#fff', hair: 'short', hc: HAIR.brown, over: `<path d="M50 70v30" stroke-width="2"/><path d="M38 72q-4 16 6 20q10 2 10-10" stroke="#2F7BE0" stroke-width="3"/><circle cx="54" cy="82" r="4" fill="#9AA7B8"/><path d="M42 72l8 6 8-6" stroke-width="2"/>` + GLASSES() }),
+  nurse: bust({ shirt: '#5FA8E8', hair: 'long', hc: HAIR.blond, over: `<path d="M34 26l4-10h24l4 10z" fill="#fff"/><path d="M50 17v7M46.5 20.5h7" stroke="#E5443B" stroke-width="3"/><rect x="60" y="80" width="12" height="10" rx="2" fill="#fff" stroke-width="2"/><path d="M66 82v6M63 85h6" stroke="#E5443B" stroke-width="2"/>` }),
+  /* rodina */
+  mum: bust({ shirt: '#F59AC6', hair: 'long', hc: HAIR.brown, over: `<ellipse cx="50" cy="88" rx="18" ry="10" fill="#FFF6E5"/><circle cx="38" cy="84" r="8" fill="${SKIN}"/><circle cx="36" cy="83" r="1.3" fill="${INK}"/><circle cx="40" cy="83" r="1.3" fill="${INK}"/>` }),
+  dad: bust({ shirt: '#2F7BE0', hair: 'short', hc: HAIR.dark, mouth: false, over: `<path d="M36 48q0 18 14 18t14-18q-4 8-14 8t-14-8z" fill="#7A4A2A"/><path d="M45 52q5 3 10 0" stroke="#fff" stroke-width="2"/>` }),
+  grandma: bust({ shirt: '#C2185B', hair: 'bun', hc: HAIR.grey, over: GLASSES() + `<path d="M36 72q14 10 28 0" stroke="#fff" stroke-width="3"/>` }),
+  grandpa: bust({ shirt: '#3FA36B', hair: 'bald', hc: HAIR.grey, mouth: false, over: GLASSES() + `<path d="M42 50q8-4 16 0q-8 4-16 0z" fill="${HAIR.grey}"/><path d="M38 72v28M62 72v28" stroke="#B9814F" stroke-width="4"/>` }),
+  brother: `<circle cx="80" cy="84" r="12" fill="#fff"/><path d="M80 72l-5 8 5 6 5-6zM68 84h6M86 84h6" stroke-width="2"/>${bust({ kid: true, shirt: '#FFC93C', hair: 'short', hc: HAIR.blond, over: '<path d="M34 86h32" stroke="#2F7BE0" stroke-width="5"/>' })}`,
 };
 const picHTML = (key, cls = '') => `<span class="pic ${cls}">${svg(PICS[key] || '')}</span>`;
 const LOGO = svg(`<rect x="10" y="14" width="80" height="72" rx="12" fill="#FFB81C"/><path d="M50 22v58" stroke-width="3"/><path d="M18 30h24M18 42h24M18 54h18M58 30h24M58 42h20M58 54h24M58 66h14" stroke-width="3"/><g transform="rotate(-35 50 50)"><rect x="34" y="64" width="40" height="11" fill="#2763D6"/><path d="M74 64l12 5.5-12 5.5z" fill="#F2D3A2"/></g>`);
@@ -593,8 +626,29 @@ const LESSONS = [
       ]},
     ],
   },
+  {
+    id: 5, title: 'Lekcia 4', name: "He's a hero!", book: 'Unit 4',
+    groups: [
+      { id: 'povolania', name: 'Povolania', words: [
+        W('teacher', 'učiteľ / učiteľka', 'teacher', 'The ___ writes on the board.', ['pupil']),
+        W('pupil', 'žiak / žiačka', 'pupil', 'A ___ sits at a desk at school.', ['teacher']),
+        W('housewife', 'žena v domácnosti', 'housewife', 'A ___ cooks and cleans at home.', ['mum', 'grandma']),
+        W('fireman', 'hasič', 'fireman', 'A ___ puts out fires.'),
+        W('pilot', 'pilot', 'pilot', 'A ___ flies a plane.'),
+        W('doctor', 'lekár', 'doctor', 'I am ill. I go to the ___.', ['nurse']),
+        W('nurse', 'zdravotná sestra', 'nurse', 'A ___ helps the doctor in the hospital.'),
+      ]},
+      { id: 'rodina', name: 'Rodina', words: [
+        W('mum', 'mama', 'mum', 'Dad and ___ are my parents.', ['grandma']),
+        W('dad', 'ocko (otec)', 'dad', 'My ___ is Mum\'s husband.'),
+        W('grandma', 'babka', 'grandma', 'My ___ is Mum\'s mother.'),
+        W('grandpa', 'dedko', 'grandpa', 'My ___ is Dad\'s father.'),
+        W('brother', 'brat', 'brother', 'My ___ is a boy. He is ten.'),
+      ]},
+    ],
+  },
 ];
-const SENT_SK = {"one": "Mám [jeden] nos.", "two": "Jeden a jeden sú [dva].", "three": "Dva a jeden sú [tri].", "four": "Dva a dva sú [štyri].", "five": "Štyri a jeden je [päť].", "six": "Tri a tri je [šesť].", "seven": "Šesť a jeden je [sedem].", "eight": "Štyri a štyri je [osem].", "nine": "Osem a jeden je [deväť].", "ten": "Päť a päť je [desať].", "Sunday": "Deň po sobote je [nedeľa].", "Monday": "Deň po nedeli je [pondelok].", "Tuesday": "Deň po pondelku je [utorok].", "Wednesday": "Deň po utorku je [streda].", "Thursday": "Deň po strede je [štvrtok].", "Friday": "Deň po štvrtku je [piatok].", "Saturday": "Deň po piatku je [sobota].", "red": "Paradajka je [červená].", "yellow": "Banán je [žltý].", "pink": "Prasiatko je [ružové].", "green": "Tráva je [zelená].", "purple": "Červená a modrá dajú [fialovú].", "orange": "Mrkva je [oranžová].", "blue": "Obloha je [modrá].", "pen": "Moje [pero] má modrý atrament.", "rubber": "Ups, chyba! Potrebujem [gumu].", "pencil": "Strúham si [ceruzku].", "ruler": "Rovnú čiaru kreslím [pravítkom].", "book": "Čítam [knihu].", "bag": "Školskú [tašku] nosím na chrbte.", "folder": "Papiere si dávam do [dosiek].", "door": "Zaklop na [dvere].", "window": "Pozri sa von [oknom].", "bookcase": "[Knižnica] má poličky na knihy.", "apple": "Jem [jablko].", "bird": "[Vták] vie lietať.", "cat": "[Mačka] robí mňau.", "dog": "[Pes] robí haf.", "doll": "Moja [bábika] má dlhé vlasy a šaty.", "ball": "Kopnem do [lopty].", "teddy": "Môj [macko] je malý hnedý medvedík.", "puzzle": "Skladám kúsky svojho [puzzle].", "car": "Moje [autíčko] má štyri kolesá.", "kite": "Môj [šarkan] lieta vo vetre.", "bike": "Môj [bicykel] má dve kolesá a pedále.", "train": "[Vláčik] robí š-š-š, tú-tú!", "game": "Hrám počítačovú [hru].", "scooter": "Stojím na [kolobežke] a odrážam sa jednou nohou.", "egg": "Sliepka znesie [vajíčko].", "fig": "[Figa] je malé fialové ovocie.", "goat": "[Koza] má rohy a bradu.", "hat": "Na hlave nosím [klobúk].", "arms": "Mávam [pažami] vo vzduchu.", "nose": "[Nosom] cítim vône.", "face": "Ráno si umývam [tvár].", "legs": "Behám [nohami].", "ears": "[Ušami] počujem.", "fingers": "Mám desať [prstov].", "hands": "Tlieskam [rukami].", "eyes": "[Očami] vidím.", "eyebrows": "[Obočie] mám nad očami.", "shoulders": "Tašku nosím na [pleciach].", "ink": "V pere mám [atrament].", "jam": "Mám rád chlieb s jahodovým [džemom].", "lion": "[Lev] robí rrr."};
+const SENT_SK = {"teacher": "[Učiteľka] píše na tabuľu.", "pupil": "[Žiak] sedí v škole v lavici.", "housewife": "[Žena v domácnosti] varí a upratuje doma.", "fireman": "[Hasič] hasí požiare.", "pilot": "[Pilot] riadi lietadlo.", "doctor": "Som chorý. Idem k [lekárovi].", "nurse": "[Zdravotná sestra] pomáha lekárovi v nemocnici.", "mum": "Ocko a [mama] sú moji rodičia.", "dad": "Môj [ocko] je mamin manžel.", "grandma": "Moja [babka] je mamina mama.", "grandpa": "Môj [dedko] je ockov otec.", "brother": "Môj [brat] je chlapec. Má desať rokov.", "one": "Mám [jeden] nos.", "two": "Jeden a jeden sú [dva].", "three": "Dva a jeden sú [tri].", "four": "Dva a dva sú [štyri].", "five": "Štyri a jeden je [päť].", "six": "Tri a tri je [šesť].", "seven": "Šesť a jeden je [sedem].", "eight": "Štyri a štyri je [osem].", "nine": "Osem a jeden je [deväť].", "ten": "Päť a päť je [desať].", "Sunday": "Deň po sobote je [nedeľa].", "Monday": "Deň po nedeli je [pondelok].", "Tuesday": "Deň po pondelku je [utorok].", "Wednesday": "Deň po utorku je [streda].", "Thursday": "Deň po strede je [štvrtok].", "Friday": "Deň po štvrtku je [piatok].", "Saturday": "Deň po piatku je [sobota].", "red": "Paradajka je [červená].", "yellow": "Banán je [žltý].", "pink": "Prasiatko je [ružové].", "green": "Tráva je [zelená].", "purple": "Červená a modrá dajú [fialovú].", "orange": "Mrkva je [oranžová].", "blue": "Obloha je [modrá].", "pen": "Moje [pero] má modrý atrament.", "rubber": "Ups, chyba! Potrebujem [gumu].", "pencil": "Strúham si [ceruzku].", "ruler": "Rovnú čiaru kreslím [pravítkom].", "book": "Čítam [knihu].", "bag": "Školskú [tašku] nosím na chrbte.", "folder": "Papiere si dávam do [dosiek].", "door": "Zaklop na [dvere].", "window": "Pozri sa von [oknom].", "bookcase": "[Knižnica] má poličky na knihy.", "apple": "Jem [jablko].", "bird": "[Vták] vie lietať.", "cat": "[Mačka] robí mňau.", "dog": "[Pes] robí haf.", "doll": "Moja [bábika] má dlhé vlasy a šaty.", "ball": "Kopnem do [lopty].", "teddy": "Môj [macko] je malý hnedý medvedík.", "puzzle": "Skladám kúsky svojho [puzzle].", "car": "Moje [autíčko] má štyri kolesá.", "kite": "Môj [šarkan] lieta vo vetre.", "bike": "Môj [bicykel] má dve kolesá a pedále.", "train": "[Vláčik] robí š-š-š, tú-tú!", "game": "Hrám počítačovú [hru].", "scooter": "Stojím na [kolobežke] a odrážam sa jednou nohou.", "egg": "Sliepka znesie [vajíčko].", "fig": "[Figa] je malé fialové ovocie.", "goat": "[Koza] má rohy a bradu.", "hat": "Na hlave nosím [klobúk].", "arms": "Mávam [pažami] vo vzduchu.", "nose": "[Nosom] cítim vône.", "face": "Ráno si umývam [tvár].", "legs": "Behám [nohami].", "ears": "[Ušami] počujem.", "fingers": "Mám desať [prstov].", "hands": "Tlieskam [rukami].", "eyes": "[Očami] vidím.", "eyebrows": "[Obočie] mám nad očami.", "shoulders": "Tašku nosím na [pleciach].", "ink": "V pere mám [atrament].", "jam": "Mám rád chlieb s jahodovým [džemom].", "lion": "[Lev] robí rrr."};
 LESSONS.forEach(l => l.groups.forEach(g => g.words.forEach(w => { w.group = g.id; w.lesson = l.id; w.sentSkGap = (SENT_SK[w.en] || '').replace(/\[[^\]]*\]/, '_____'); w.sentSk = (SENT_SK[w.en] || '').replace(/\[([^\]]*)\]/, '$1'); })));
 const lessonWords = (l) => l.groups.flatMap(g => g.words);
 const lessonById = (id) => LESSONS.find(l => l.id === id);
