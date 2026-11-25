@@ -403,7 +403,7 @@ body.printmode { background: #fff; color: #111; font-size: 13pt; }
    ===================================================================== */
 const CONFIG = {
   unlockMode: 'central',
-  unlocked: [1, 2, 3, 4, 5],
+  unlocked: [1, 2, 3, 4, 5, 6, 7, 8],
 };
 /* Webová verzia (vlastný server): zoznam odomknutých lekcií sa číta zo súboru lekcie.json */
 const WEB = true;
@@ -455,6 +455,11 @@ function bust({ shirt = '#5FA8E8', hair = 'short', hc = HAIR.brown, skin = SKIN,
     <circle cx="${50 - 6}" cy="${cy}" r="2.2" fill="${INK}"/><circle cx="${50 + 6}" cy="${cy}" r="2.2" fill="${INK}"/>${mouth ? `<path d="M45 ${cy + 7}q5 4 10 0" stroke-width="2.5"/>` : ''}${top}${over}`;
 }
 const GLASSES = (cy = 42) => `<circle cx="44" cy="${cy}" r="5.5" fill="none" stroke-width="2"/><circle cx="56" cy="${cy}" r="5.5" fill="none" stroke-width="2"/><path d="M49.5 ${cy}h1" stroke-width="2"/>`;
+
+/* park (Unit 5): lopta zmenšená, prekrývajúce sa kruhy bez vnútorných čiar */
+const miniBall = (cx, cy, r) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#FFD43B"/><path d="M${cx} ${cy - r}a${r} ${r} 0 0 1 ${r} ${r}H${cx}zM${cx} ${cy + r}a${r} ${r} 0 0 1-${r}-${r}H${cx}z" fill="#E5443B"/><circle cx="${cx}" cy="${cy}" r="${r}"/>`;
+const blobs = (cs, fill) => cs.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}"/>`).join('') + cs.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r - 1.6}" fill="${fill}" stroke="none"/>`).join('');
+const TABLE = `<rect x="22" y="48" width="8" height="42" fill="#9A6234"/><rect x="70" y="48" width="8" height="42" fill="#9A6234"/><rect x="10" y="40" width="80" height="10" rx="2" fill="#C48653"/><path d="M4 90h92" stroke="#46B05A" stroke-width="4"/>`;
 
 const PICS = {
   sunday: day('NE', true), monday: day('PO'), tuesday: day('UT'), wednesday: day('ST'), thursday: day('ŠT'), friday: day('PI'), saturday: day('SO', true),
@@ -511,6 +516,46 @@ const PICS = {
   grandma: bust({ shirt: '#C2185B', hair: 'bun', hc: HAIR.grey, over: GLASSES() + `<path d="M36 72q14 10 28 0" stroke="#fff" stroke-width="3"/>` }),
   grandpa: bust({ shirt: '#3FA36B', hair: 'bald', hc: HAIR.grey, mouth: false, over: GLASSES() + `<path d="M42 50q8-4 16 0q-8 4-16 0z" fill="${HAIR.grey}"/><path d="M38 72v28M62 72v28" stroke="#B9814F" stroke-width="4"/>` }),
   brother: `<circle cx="80" cy="84" r="12" fill="#fff"/><path d="M80 72l-5 8 5 6 5-6zM68 84h6M86 84h6" stroke-width="2"/>${bust({ kid: true, shirt: '#FFC93C', hair: 'short', hc: HAIR.blond, over: '<path d="M34 86h32" stroke="#2F7BE0" stroke-width="5"/>' })}`,
+  /* park */
+  seesaw: `<path d="M4 90h92" stroke="#46B05A" stroke-width="4"/><path d="M38 90l12-28 12 28z" fill="#8E55C9"/><path d="M6 70L92 48l2 8L8 78z" fill="#FF8A1F"/><path d="M18 70V58M84 52V40M13 58h10M79 40h10" stroke-width="4"/><circle cx="50" cy="62" r="5" fill="#FFD43B"/>`,
+  slide: `<path d="M4 90h92" stroke="#46B05A" stroke-width="4"/><path d="M14 90V28M32 90V28" stroke="#E5443B" stroke-width="4"/><path d="M14 40h18M14 54h18M14 68h18M14 82h18" stroke-width="3"/><rect x="10" y="22" width="30" height="8" rx="2" fill="#E5443B"/><path d="M34 26h8l48 54v10h-9L34 38z" fill="#FFC93C"/><path d="M40 30l44 52" stroke="#E8A21C" stroke-width="2"/>`,
+  net: `<path d="M4 88h92" stroke="#46B05A" stroke-width="4"/><rect x="12" y="24" width="76" height="62" fill="#EAF3FF" stroke="none"/><path d="M12 36h76M12 48h76M12 60h76M12 72h76M24 24v62M36 24v62M48 24v62M60 24v62M72 24v62" stroke="#9AA7B8" stroke-width="1.5"/><path d="M12 88V22h76v66" stroke-width="7"/><path d="M12 88V22h76v66" stroke="#fff" stroke-width="3.5"/>${miniBall(66, 74, 11)}`,
+  swing: `<path d="M4 92h92" stroke="#46B05A" stroke-width="4"/><path d="M14 92L26 16M86 92L74 16" stroke="#E5443B" stroke-width="5"/><path d="M20 16h60" stroke="#E5443B" stroke-width="6"/><path d="M38 18v48M62 18v48" stroke-width="2"/><rect x="32" y="64" width="36" height="8" rx="3" fill="#FFD43B"/>`,
+  tree: `<path d="M4 92h92" stroke="#46B05A" stroke-width="4"/><path d="M43 92V54h14v38z" fill="#9A6234"/><path d="M50 70l-10-10M50 64l8-8" stroke="#9A6234" stroke-width="4"/>${blobs([[50, 30, 22], [30, 46, 16], [70, 46, 16], [50, 52, 16]], '#46B05A')}<circle cx="40" cy="30" r="3" fill="#E5443B"/><circle cx="62" cy="40" r="3" fill="#E5443B"/><circle cx="34" cy="50" r="3" fill="#E5443B"/>`,
+  climbingframe: `<path d="M4 92h92" stroke="#46B05A" stroke-width="4"/><path d="M14 92V30M38 92V30M62 92V30M86 92V30" stroke="#2F7BE0" stroke-width="5"/><path d="M14 50h72M14 70h72" stroke="#46B05A" stroke-width="5"/><path d="M14 30h72" stroke="#E5443B" stroke-width="6"/>`,
+  pool: `<rect x="6" y="28" width="88" height="56" rx="20" fill="#BFC7D3"/><rect x="15" y="37" width="70" height="38" rx="13" fill="#5FA8E8"/><path d="M24 52q6-4 12 0t12 0t12 0t12 0M30 64q6-4 12 0t12 0t12 0" stroke="#fff" stroke-width="2.5"/><path d="M70 12v32M82 12v32M70 22h12M70 32h12" stroke-width="3"/>`,
+  armbands: [8, 54].map(x => `<rect x="${x}" y="22" width="38" height="56" rx="15" fill="#FF8A1F"/><path d="M${x + 3} 40h32M${x + 3} 60h32" stroke="#C9600F" stroke-width="2"/><ellipse cx="${x + 19}" cy="50" rx="7" ry="8" fill="#fff"/><rect x="${x + 30}" y="26" width="5" height="7" rx="2" fill="#FFD43B" stroke-width="1.5"/>`).join(''),
+  icecream: `<path d="M33 48L50 96 67 48z" fill="#E8B26A"/><path d="M38 54l18 18M48 50l14 14M36 64l14-14M42 76l18-18" stroke="#B9814F" stroke-width="2"/>${blobs([[38, 42, 14], [62, 42, 14], [50, 26, 14]], '#F59AC6')}<path d="M50 26m-14 0a14 14 0 0 1 28 0" fill="none"/><circle cx="50" cy="10" r="4.5" fill="#E5443B"/><path d="M50 6q2-5 6-6" stroke-width="2"/>`,
+  frisbee: `<path d="M4 38h14M2 50h12M6 62h12" stroke="#9AA7B8" stroke-width="2.5"/><g transform="rotate(-12 56 52)"><ellipse cx="56" cy="54" rx="38" ry="16" fill="#C62828"/><ellipse cx="56" cy="50" rx="38" ry="15" fill="#E5443B"/><ellipse cx="56" cy="49" rx="24" ry="9" fill="#F26B5F" stroke-width="2"/><ellipse cx="56" cy="48" rx="11" ry="4" stroke-width="2"/></g>`,
+  /* hlásky q, r, s, (t), u */
+  queen: bust({ shirt: '#C2185B', hair: 'long', hc: HAIR.blond, over: `<path d="M34 28l2-18 7 8 7-10 7 10 7-8 2 18z" fill="#FFC93C"/><circle cx="50" cy="16" r="2.5" fill="#E5443B" stroke-width="1.5"/><path d="M36 74q14 10 28 0" stroke="#FFC93C" stroke-width="3"/><path d="M78 100V66" stroke="#FFC93C" stroke-width="4"/><circle cx="78" cy="62" r="6" fill="#8E55C9"/>` }),
+  rabbit: `<ellipse cx="40" cy="24" rx="7" ry="20" fill="#E9E9EE"/><ellipse cx="60" cy="24" rx="7" ry="20" fill="#E9E9EE"/><ellipse cx="40" cy="26" rx="3" ry="13" fill="#F59AC6" stroke="none"/><ellipse cx="60" cy="26" rx="3" ry="13" fill="#F59AC6" stroke="none"/><ellipse cx="50" cy="78" rx="24" ry="18" fill="#E9E9EE"/><circle cx="50" cy="52" r="18" fill="#E9E9EE"/><circle cx="43" cy="48" r="2.6" fill="${INK}"/><circle cx="57" cy="48" r="2.6" fill="${INK}"/><path d="M47 55h6l-3 3z" fill="#F59AC6" stroke-width="2"/><rect x="47" y="60" width="6" height="5" fill="#fff" stroke-width="1.5"/><path d="M30 54l12 2M30 60l12-1M70 54l-12 2M70 60l-12-1" stroke-width="1.5"/><ellipse cx="38" cy="94" rx="8" ry="4" fill="#E9E9EE"/><ellipse cx="62" cy="94" rx="8" ry="4" fill="#E9E9EE"/>`,
+  sofa: `<rect x="14" y="30" width="72" height="34" rx="9" fill="#C8693A"/><path d="M50 32v30" stroke-width="2"/><rect x="18" y="56" width="64" height="22" rx="5" fill="#D98250"/><path d="M50 56v22" stroke-width="2"/><rect x="5" y="46" width="18" height="36" rx="8" fill="#B0552A"/><rect x="77" y="46" width="18" height="36" rx="8" fill="#B0552A"/><path d="M14 82v8M86 82v8" stroke-width="5"/>`,
+  umbrella: `<path d="M50 14V7" stroke-width="4"/><path d="M50 50v34q0 9-7 9t-7-8" stroke="#7A4A2A" stroke-width="5"/><path d="M8 50Q8 14 50 14T92 50q-7-6-14 0q-7-6-14 0q-7-6-14 0q-7-6-14 0q-7-6-14 0q-7-6-14 0z" fill="#2F7BE0"/><path d="M50 14q-14 14-14 36M50 14q14 14 14 36M50 14q-30 10-28 36M50 14q30 10 28 36" stroke-width="2"/>`,
+  /* in, on, under */
+  in: `<path d="M4 90h92" stroke="#46B05A" stroke-width="4"/><path d="M22 48L10 34h12zM78 48l12-14H78z" fill="#E0A872"/>${miniBall(50, 46, 15)}<rect x="22" y="48" width="56" height="42" fill="#C48653"/><path d="M22 60h56" stroke="#9A6234" stroke-width="2"/>`,
+  on: TABLE + miniBall(50, 26, 14),
+  under: TABLE + miniBall(50, 75, 14),
+  /* rodina (Unit 6) */
+  sister: bust({ kid: true, shirt: '#F59AC6', hair: 'pigtails', hc: HAIR.dark }),
+  aunt: bust({ shirt: '#FFC93C', hair: 'long', hc: '#B5562B', over: `<circle cx="34" cy="50" r="2.5" fill="#FFC93C"/><circle cx="66" cy="50" r="2.5" fill="#FFC93C"/>` }),
+  uncle: bust({ shirt: '#46B05A', hair: 'short', hc: HAIR.dark, mouth: false, over: `<path d="M40 50q10-5 20 0q-10 3-20 0z" fill="${HAIR.dark}"/><path d="M45 54q5 3 10 0" stroke-width="2"/><path d="M38 76l12 14 12-14" stroke="#2E7D3F" stroke-width="3"/>` }),
+  cousin: bust({ kid: true, shirt: '#2F7BE0', hair: 'short', hc: '#B5562B', over: `<path d="M30 34q20-14 40 0l6 4H30z" fill="#E5443B"/><path d="M68 36h14" stroke="#E5443B" stroke-width="5"/>` }),
+  /* hlásky v, (w), x, y, z */
+  van: `<path d="M6 76V36q0-6 6-6h50q6 0 10 6l14 18q6 2 6 10v12z" fill="#FFC93C"/><path d="M64 36h6l12 18H64z" fill="#BFE3FF"/><rect x="14" y="38" width="20" height="14" rx="2" fill="#BFE3FF"/><rect x="38" y="38" width="20" height="14" rx="2" fill="#BFE3FF"/><path d="M6 64h86" stroke="#E8A21C" stroke-width="3"/><circle cx="26" cy="78" r="9" fill="${INK}"/><circle cx="74" cy="78" r="9" fill="${INK}"/><circle cx="26" cy="78" r="3.5" fill="#9AA7B8"/><circle cx="74" cy="78" r="3.5" fill="#9AA7B8"/>`,
+  box: `<path d="M16 40l34-12 34 12-34 12z" fill="#E0A872"/><path d="M16 40v38l34 12V52z" fill="#C48653"/><path d="M84 40v38L50 90V52z" fill="#B0703D"/><path d="M16 40L8 30l34-12 8 10M84 40l8-10-34-12-8 10" fill="#D99A5F"/><path d="M50 52v38" stroke-width="2"/>`,
+  yoyo: `<path d="M50 6v30" stroke-width="2"/><circle cx="50" cy="8" r="4" fill="#fff"/><circle cx="50" cy="62" r="30" fill="#E5443B"/><circle cx="50" cy="62" r="20" fill="#F26B5F"/><path d="M50 48l4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1z" fill="#fff" stroke-width="1.5"/>`,
+  zebra: `<path d="M22 52q-10 4-12 16" stroke-width="2.5"/><path d="M28 70v22M40 72v20M58 72v20M68 70v22" stroke-width="5"/><path d="M62 52l12-20 12 6-10 22z" fill="#fff"/><rect x="20" y="44" width="54" height="30" rx="15" fill="#fff"/><path d="M34 45v28M44 44v30M54 44v30M64 46v26M68 40l12 4M72 34l10 4" stroke-width="4"/><g transform="rotate(35 82 26)"><ellipse cx="82" cy="26" rx="9" ry="16" fill="#fff"/><path d="M74 20h16M74 28h16" stroke-width="3"/><ellipse cx="82" cy="39" rx="7" ry="5" fill="#9AA7B8"/><path d="M76 10l-3-8 7 5M88 10l3-8-7 5" fill="#fff"/></g><circle cx="79" cy="26" r="2" fill="${INK}"/>`,
+  /* oblečenie (Unit 7) */
+  dress: `<path d="M38 10h24l-2 18 6 4-4 10 20 48H18l20-48-4-10 6-4z" fill="#F59AC6"/><path d="M36 42h28" stroke="#C2185B" stroke-width="4"/><circle cx="36" cy="70" r="4" fill="#FFD43B" stroke-width="1.5"/><circle cx="58" cy="64" r="4" fill="#FFD43B" stroke-width="1.5"/><circle cx="66" cy="80" r="4" fill="#FFD43B" stroke-width="1.5"/><circle cx="44" cy="84" r="4" fill="#FFD43B" stroke-width="1.5"/>`,
+  socks: [[14, '#46B05A'], [50, '#2F7BE0']].map(([x, c]) => `<path d="M${x} 10h18v52q0 6 6 8l10 4q6 4 2 12t-12 2l-18-8q-6-3-6-10z" fill="${c}"/><path d="M${x} 22h18M${x} 34h18M${x} 46h18" stroke="#FFD43B" stroke-width="4"/>`).join(''),
+  tshirt: `<path d="M34 12l-24 14 8 18 10-6v50h44V38l10 6 8-18-24-14q-6 8-16 8t-16-8z" fill="#46B05A"/><circle cx="50" cy="52" r="9" fill="#FFD43B"/>`,
+  trousers: `<path d="M24 8h52l6 84H58L50 36l-8 56H18z" fill="#2F7BE0"/><path d="M24 18h52" stroke-width="3"/><path d="M50 18v18" stroke-width="2"/><path d="M30 26q6 6 12 0M58 26q6 6 12 0" stroke-width="2"/>`,
+  shorts: `<path d="M18 22h64l8 50H58L50 46l-8 26H10z" fill="#F59AC6"/><path d="M18 32h64" stroke-width="3"/><path d="M50 32v14" stroke-width="2"/><circle cx="30" cy="42" r="3" fill="#FFD43B" stroke-width="1.5"/>`,
+  shoes: [[4, 30], [50, 52]].map(([x, y]) => `<path d="M${x + 4} ${y}h16l4 10q10 0 18 4t4 12H${x + 4}z" fill="#5FA8E8"/><path d="M${x + 4} ${y + 22}h42" stroke-width="5"/><path d="M${x + 18} ${y + 8}l6 4M${x + 18} ${y + 14}l8 2" stroke="#fff" stroke-width="2.5"/>`).join(''),
+  coat: `<path d="M36 8l-20 12-8 60h16l2-40v50h48V40l2 40h16l-8-60-20-12-14 18z" fill="#FFC93C"/><path d="M50 26v64" stroke-width="2.5"/><circle cx="44" cy="40" r="2.5" fill="${INK}"/><circle cx="44" cy="56" r="2.5" fill="${INK}"/><circle cx="44" cy="72" r="2.5" fill="${INK}"/><path d="M36 8l14 18 14-18" stroke-width="3"/>`,
+  cardigan: `<path d="M36 10l-22 12-6 64h16l4-44v48h44V42l4 44h16l-6-64-22-12-14 24z" fill="#8FC5F2"/><path d="M50 34v58" stroke-width="2.5"/><circle cx="46" cy="46" r="2.2" fill="#fff"/><circle cx="46" cy="60" r="2.2" fill="#fff"/><circle cx="46" cy="74" r="2.2" fill="#fff"/><circle cx="30" cy="58" r="4" fill="#2F7BE0" stroke="none"/><circle cx="66" cy="70" r="4" fill="#2F7BE0" stroke="none"/><circle cx="64" cy="44" r="4" fill="#2F7BE0" stroke="none"/>`,
+  tracksuit: `<path d="M30 6l-16 8-6 34h12l2-16v24h24l-2-34 2-16z" fill="#E5443B"/><path d="M70 6l16 8 6 34H80l-2-16v24H54l2-34-2-16z" fill="#E5443B"/><path d="M50 6v52" stroke-width="2"/><path d="M14 22l8 24M86 22l-8 24" stroke="#fff" stroke-width="2.5"/><path d="M22 60h56l4 34H58l-8-26-8 26H18z" fill="#E5443B"/><path d="M24 62l-4 30M76 62l4 30" stroke="#fff" stroke-width="2.5"/>`,
 };
 const picHTML = (key, cls = '') => `<span class="pic ${cls}">${svg(PICS[key] || '')}</span>`;
 const LOGO = svg(`<rect x="10" y="14" width="80" height="72" rx="12" fill="#FFB81C"/><path d="M50 22v58" stroke-width="3"/><path d="M18 30h24M18 42h24M18 54h18M58 30h24M58 42h20M58 54h24M58 66h14" stroke-width="3"/><g transform="rotate(-35 50 50)"><rect x="34" y="64" width="40" height="11" fill="#2763D6"/><path d="M74 64l12 5.5-12 5.5z" fill="#F2D3A2"/></g>`);
@@ -525,34 +570,34 @@ const LESSONS = [
     id: 1, title: 'Lekcia 0', name: 'Hello!', book: 'Starter',
     groups: [
       { id: 'cisla', name: 'Čísla 1–10', words: [
-        W('one', 'jeden', 'one', 'I have got ___ nose.'),
-        W('two', 'dva', 'two', 'One and one is ___.'),
-        W('three', 'tri', 'three', 'Two and one is ___.'),
-        W('four', 'štyri', 'four', 'Two and two is ___.'),
-        W('five', 'päť', 'five', 'Four and one is ___.'),
-        W('six', 'šesť', 'six', 'Three and three is ___.'),
-        W('seven', 'sedem', 'seven', 'Six and one is ___.'),
-        W('eight', 'osem', 'eight', 'Four and four is ___.'),
-        W('nine', 'deväť', 'nine', 'Eight and one is ___.'),
-        W('ten', 'desať', 'ten', 'Five and five is ___.'),
+        W("one", 'jeden', 'one', "How old are you? I'm ___."),
+        W("two", 'dva', 'two', "How old are you? I'm ___."),
+        W("three", 'tri', 'three', "How old are you? I'm ___."),
+        W("four", 'štyri', 'four', "How old are you? I'm ___."),
+        W("five", 'päť', 'five', "How old are you? I'm ___."),
+        W("six", 'šesť', 'six', "How old are you? I'm ___."),
+        W("seven", 'sedem', 'seven', "How old are you? I'm ___."),
+        W("eight", 'osem', 'eight', "How old are you? I'm ___."),
+        W("nine", 'deväť', 'nine', "How old are you? I'm ___."),
+        W("ten", 'desať', 'ten', "How old are you? I'm ___."),
       ]},
       { id: 'dni', name: 'Dni v týždni', words: [
-        W('Sunday', 'nedeľa', 'sunday', 'The day after Saturday is ___.'),
-        W('Monday', 'pondelok', 'monday', 'The day after Sunday is ___.'),
-        W('Tuesday', 'utorok', 'tuesday', 'The day after Monday is ___.'),
-        W('Wednesday', 'streda', 'wednesday', 'The day after Tuesday is ___.'),
-        W('Thursday', 'štvrtok', 'thursday', 'The day after Wednesday is ___.'),
-        W('Friday', 'piatok', 'friday', 'The day after Thursday is ___.'),
-        W('Saturday', 'sobota', 'saturday', 'The day after Friday is ___.'),
+        W("Sunday", 'nedeľa', 'sunday', "___, Monday, Tuesday."),
+        W("Monday", 'pondelok', 'monday', "Sunday, ___, Tuesday."),
+        W("Tuesday", 'utorok', 'tuesday', "Monday, ___, Wednesday."),
+        W("Wednesday", 'streda', 'wednesday', "Tuesday, ___, Thursday."),
+        W("Thursday", 'štvrtok', 'thursday', "Wednesday, ___, Friday."),
+        W("Friday", 'piatok', 'friday', "Thursday, ___, Saturday."),
+        W("Saturday", 'sobota', 'saturday', "Thursday, Friday, ___."),
       ]},
       { id: 'farby', name: 'Farby', words: [
-        W('red', 'červená', 'red', 'A tomato is ___.'),
-        W('yellow', 'žltá', 'yellow', 'A banana is ___.'),
-        W('pink', 'ružová', 'pink', 'A pig is ___.'),
-        W('green', 'zelená', 'green', 'Grass is ___.'),
-        W('purple', 'fialová', 'purple', 'Red and blue make ___.'),
-        W('orange', 'oranžová', 'orange', 'A carrot is ___.'),
-        W('blue', 'modrá', 'blue', 'The sky is ___.'),
+        W("red", 'červená', 'red', "___ and yellow, and pink and green.", ["@farby"]),
+        W("yellow", 'žltá', 'yellow', "Red and ___, and pink and green.", ["@farby"]),
+        W("pink", 'ružová', 'pink', "Red and yellow, and ___ and green.", ["@farby"]),
+        W("green", 'zelená', 'green', "Red and yellow, and pink and ___.", ["@farby"]),
+        W("purple", 'fialová', 'purple', "___ and orange, and blue.", ["@farby"]),
+        W("orange", 'oranžová', 'orange', "Purple and ___, and blue.", ["@farby"]),
+        W("blue", 'modrá', 'blue', "Purple and orange, and ___.", ["@farby"]),
       ]},
     ],
   },
@@ -560,24 +605,24 @@ const LESSONS = [
     id: 2, title: 'Lekcia 1', name: "What's this?", book: 'Unit 1',
     groups: [
       { id: 'trieda', name: 'Školské veci', words: [
-        W('pen', 'pero', 'pen', 'My ___ has got blue ink.'),
-        W('rubber', 'guma', 'rubber', 'Oops, a mistake! I need a ___.'),
-        W('pencil', 'ceruzka', 'pencil', 'I sharpen my ___.'),
-        W('ruler', 'pravítko', 'ruler', 'I draw a straight line with a ___.'),
-        W('book', 'kniha', 'book', 'I read a ___.'),
-        W('bag', 'taška', 'bag', 'I carry my school ___ on my back.'),
-        W('folder', 'dosky na papiere', 'folder', 'I put my papers in a ___.', ['bag']),
+        W("pen", 'pero', 'pen', "Look, what's this? It's a ___.", ["@trieda"]),
+        W("rubber", 'guma', 'rubber', "And what's this? It's a ___.", ["@trieda"]),
+        W("pencil", 'ceruzka', 'pencil', "And this is my ___.", ["@trieda"]),
+        W("ruler", 'pravítko', 'ruler', "What's this? It's a ___.", ["@trieda"]),
+        W("book", 'kniha', 'book', "Open the ___!", ["@trieda", "door", "window"]),
+        W("bag", 'taška', 'bag', "This is my school ___.", ["@trieda"]),
+        W("folder", 'dosky na papiere', 'folder', "This is a blue ___.", ["@trieda"]),
       ]},
       { id: 'izba', name: 'V triede', words: [
-        W('door', 'dvere', 'door', 'Knock on the ___.'),
-        W('window', 'okno', 'window', 'Look out of the ___.', ['door']),
-        W('bookcase', 'knižnica', 'bookcase', 'A ___ has got shelves for books.'),
+        W("door", 'dvere', 'door', "Close the ___.", ["window", "book"]),
+        W("window", 'okno', 'window', "Look out of the ___.", ["door"]),
+        W("bookcase", 'knižnica', 'bookcase', "What's this? It's a ___.", ["@trieda"]),
       ]},
       { id: 'abcd', name: 'Hlásky a, b, c, d', words: [
-        W('apple', 'jablko', 'apple', 'I eat an ___.', ['egg']),
-        W('bird', 'vták', 'bird', 'A ___ can fly.', ['kite']),
-        W('cat', 'mačka', 'cat', 'A ___ says meow.'),
-        W('dog', 'pes', 'dog', 'A ___ says woof.'),
+        W("apple", 'jablko', 'apple', "The dog likes ___s.", ["bird", "egg", "fig", "cat"]),
+        W("bird", 'vták', 'bird', "The cat likes ___s.", ["apple", "dog"]),
+        W("cat", 'mačka', 'cat', "Here's the ___ with the bird.", ["dog"]),
+        W("dog", 'pes', 'dog', "Here's the ___ with the apple.", ["cat"]),
       ]},
     ],
   },
@@ -585,22 +630,22 @@ const LESSONS = [
     id: 3, title: 'Lekcia 2', name: 'Playtime!', book: 'Unit 2',
     groups: [
       { id: 'hracky', name: 'Hračky', words: [
-        W('doll', 'bábika', 'doll', 'My ___ has got long hair and a dress.'),
-        W('ball', 'lopta', 'ball', 'I kick the ___.'),
-        W('teddy', 'macko', 'teddy', 'My ___ is a little brown bear.'),
-        W('puzzle', 'skladačka (puzzle)', 'puzzle', 'I put the pieces of my ___ together.'),
-        W('car', 'autíčko', 'car', 'My toy ___ has got four wheels.'),
-        W('kite', 'šarkan', 'kite', 'My ___ flies in the wind.', ['bird']),
-        W('bike', 'bicykel', 'bike', 'My ___ has got two wheels and pedals.'),
-        W('train', 'vláčik', 'train', 'The ___ goes choo choo!'),
-        W('game', 'hra', 'game', 'I play a computer ___.'),
-        W('scooter', 'kolobežka', 'scooter', 'I stand on my ___ and push with one foot.'),
+        W("doll", 'bábika', 'doll', "This is your ___. And this is your ball.", ["@hracky"]),
+        W("ball", 'lopta', 'ball', "This is your doll. And this is your ___.", ["@hracky"]),
+        W("teddy", 'macko', 'teddy', "Is this your ___?", ["@hracky"]),
+        W("puzzle", 'skladačka (puzzle)', 'puzzle', "Is it a ___? Yes, it is.", ["@hracky"]),
+        W("car", 'autíčko', 'car', "This is my ___.", ["@hracky"]),
+        W("kite", 'šarkan', 'kite', "This is my big red ___.", ["@hracky"]),
+        W("bike", 'bicykel', 'bike', "This is my big blue ___.", ["@hracky"]),
+        W("train", 'vláčik', 'train', "This is my big green ___.", ["@hracky"]),
+        W("game", 'hra', 'game', "It's my ___.", ["@hracky"]),
+        W("scooter", 'kolobežka', 'scooter', "Is it my ___?", ["@hracky"]),
       ]},
       { id: 'efgh', name: 'Hlásky e, f, g, h', words: [
-        W('egg', 'vajíčko', 'egg', 'A hen lays an ___.', ['apple']),
-        W('fig', 'figa', 'fig', 'A ___ is a small purple fruit.'),
-        W('goat', 'koza', 'goat', 'A ___ has got horns and a beard.'),
-        W('hat', 'klobúk', 'hat', 'I wear a ___ on my head.'),
+        W("egg", 'vajíčko', 'egg', "There's an ___ with a yellow hat.", ["apple"]),
+        W("fig", 'figa', 'fig', "The goat's got a ___.", ["hat", "egg", "apple"]),
+        W("goat", 'koza', 'goat', "Look, the ___ likes figs.", ["cat", "dog", "lion", "bird"]),
+        W("hat", 'klobúk', 'hat', "There's an egg with a yellow ___."),
       ]},
     ],
   },
@@ -608,21 +653,21 @@ const LESSONS = [
     id: 4, title: 'Lekcia 3', name: 'This is my nose!', book: 'Unit 3',
     groups: [
       { id: 'telo', name: 'Moje telo', words: [
-        W('arms', 'paže', 'arms', 'I wave my ___ in the air.', ['hands']),
-        W('nose', 'nos', 'nose', 'I smell with my ___.'),
-        W('face', 'tvár', 'face', 'I wash my ___ in the morning.', ['hands']),
-        W('legs', 'nohy', 'legs', 'I run with my ___.'),
-        W('ears', 'uši', 'ears', 'I hear with my ___.'),
-        W('fingers', 'prsty', 'fingers', 'I have got ten ___.'),
-        W('hands', 'ruky (dlane)', 'hands', 'I clap my ___.', ['arms', 'face']),
-        W('eyes', 'oči', 'eyes', 'I see with my ___.'),
-        W('eyebrows', 'obočie', 'eyebrows', 'My ___ are above my eyes.'),
-        W('shoulders', 'plecia', 'shoulders', 'I carry my bag on my ___.'),
+        W("arms", 'paže', 'arms', "First, my ___.", ["@telo"]),
+        W("nose", 'nos', 'nose', "Now, my ___.", ["@telo"]),
+        W("face", 'tvár', 'face', "Put it on your ___ and your legs.", ["@telo"]),
+        W("legs", 'nohy', 'legs', "Put it on your face and your ___.", ["@telo"]),
+        W("ears", 'uši', 'ears', "These are my ___.", ["@telo"]),
+        W("fingers", 'prsty', 'fingers', "Ten ___ on my hands.", ["@telo"]),
+        W("hands", 'ruky (dlane)', 'hands', "Ten fingers on my ___.", ["@telo"]),
+        W("eyes", 'oči', 'eyes', "Two ___, one nose, all on my face.", ["@telo"]),
+        W("eyebrows", 'obočie', 'eyebrows', "It's got black ___.", ["@telo"]),
+        W("shoulders", 'plecia', 'shoulders', "Point to your ___.", ["@telo"]),
       ]},
       { id: 'ijkl', name: 'Hlásky i, j, k, l', words: [
-        W('ink', 'atrament', 'ink', 'There is ___ in my pen.'),
-        W('jam', 'džem', 'jam', 'I like bread with strawberry ___.'),
-        W('lion', 'lev', 'lion', 'A ___ says roar.'),
+        W("ink", 'atrament', 'ink', "The lion's got some ___.", ["jam"]),
+        W("jam", 'džem', 'jam', "The lion's got some ___.", ["ink"]),
+        W("lion", 'lev', 'lion', "Oops! The ___ is a mess.", ["cat", "dog", "goat", "bird"]),
       ]},
     ],
   },
@@ -630,25 +675,90 @@ const LESSONS = [
     id: 5, title: 'Lekcia 4', name: "He's a hero!", book: 'Unit 4',
     groups: [
       { id: 'povolania', name: 'Povolania', words: [
-        W('teacher', 'učiteľ / učiteľka', 'teacher', 'The ___ writes on the board.', ['pupil']),
-        W('pupil', 'žiak / žiačka', 'pupil', 'A ___ sits at a desk at school.', ['teacher']),
-        W('housewife', 'žena v domácnosti', 'housewife', 'A ___ cooks and cleans at home.', ['mum', 'grandma']),
-        W('fireman', 'hasič', 'fireman', 'A ___ puts out fires.'),
-        W('pilot', 'pilot', 'pilot', 'A ___ flies a plane.'),
-        W('doctor', 'lekár', 'doctor', 'I am ill. I go to the ___.', ['nurse']),
-        W('nurse', 'zdravotná sestra', 'nurse', 'A ___ helps the doctor in the hospital.'),
+        W("teacher", 'učiteľ / učiteľka', 'teacher', "Look! Is Billy a ___? Yes, he is.", ["@povolania"]),
+        W("pupil", 'žiak / žiačka', 'pupil', "And Tim is a ___.", ["@povolania"]),
+        W("housewife", 'žena v domácnosti', 'housewife', "No, she isn't. She's a ___.", ["@povolania"]),
+        W("fireman", 'hasič', 'fireman', "Look at Grandpa. Is he a ___?", ["@povolania"]),
+        W("pilot", 'pilot', 'pilot', "Is Dad a ___?", ["@povolania"]),
+        W("doctor", 'lekár', 'doctor', "This is my grandpa. He's a ___.", ["@povolania"]),
+        W("nurse", 'zdravotná sestra', 'nurse', "My mum is a ___.", ["@povolania"]),
       ]},
       { id: 'rodina', name: 'Rodina', words: [
-        W('mum', 'mama', 'mum', 'Dad and ___ are my parents.', ['grandma']),
-        W('dad', 'ocko (otec)', 'dad', 'My ___ is Mum\'s husband.'),
-        W('grandma', 'babka', 'grandma', 'My ___ is Mum\'s mother.'),
-        W('grandpa', 'dedko', 'grandpa', 'My ___ is Dad\'s father.'),
-        W('brother', 'brat', 'brother', 'My ___ is a boy. He is ten.'),
+        W("mum", 'mama', 'mum', "This is my ___. She's a nurse.", ["@rodina", "@rodina6"]),
+        W("dad", 'ocko (otec)', 'dad', "This is my ___. He's a fireman.", ["@rodina", "@rodina6"]),
+        W("grandma", 'babka', 'grandma', "Is ___ a teacher?", ["@rodina", "@rodina6"]),
+        W("grandpa", 'dedko', 'grandpa', "Look at ___. Is he a fireman?", ["@rodina", "@rodina6"]),
+        W("brother", 'brat', 'brother', "This is me with my ___. His name's Joe.", ["@rodina", "@rodina6"]),
+      ]},
+    ],
+  },
+  {
+    id: 6, title: 'Lekcia 5', name: "Where's the ball?", book: 'Unit 5',
+    groups: [
+      { id: 'ihrisko', name: 'Ihrisko', words: [
+        W("seesaw", 'hojdačka na váhu', 'seesaw', "Where's the ball? Is it under the ___?", ["@ihrisko"]),
+        W("slide", 'šmykľavka', 'slide', "Look! The ball's on the ___.", ["@ihrisko"]),
+        W("swing", 'hojdačka', 'swing', "Can I go on the ___, please?", ["@ihrisko"]),
+        W("climbing frame", 'preliezačka', 'climbingframe', "I'm on the ___!", ["@ihrisko"]),
+        W("net", 'sieť (v bránke)', 'net', "And now it's in the ___!", ["@ihrisko", "pool"]),
+        W("tree", 'strom', 'tree', "It's under the ___.", ["@ihrisko"]),
+      ]},
+      { id: 'zabava', name: 'Zábava v parku', words: [
+        W("pool", 'bazén', 'pool', "Play in the ___.", ["net"]),
+        W("armbands", 'rukávniky', 'armbands', "Look at the ___.", ["@zabava"]),
+        W("ice cream", 'zmrzlina', 'icecream', "Eat an ___, it's nice and cool."),
+        W("frisbee", 'frisbee (lietajúci tanier)', 'frisbee', "Play with a ___.", ["ball", "kite", "doll", "car", "train", "game", "puzzle", "teddy", "bike", "scooter", "yo-yo"]),
+      ]},
+      { id: 'kde', name: 'Kde je? (in, on, under)', words: [
+        W("in", 'v', 'in', "And now it's ___ the net!", ["@kde"]),
+        W("on", 'na', 'on', "Look! The ball's ___ the slide.", ["@kde"]),
+        W("under", 'pod', 'under', "Where's the ball? It's ___ the tree.", ["@kde"]),
+      ]},
+      { id: 'qrsu', name: 'Hlásky q, r, s, u', words: [
+        W("queen", 'kráľovná', 'queen', "The ___ is on the sofa.", ["teddy"]),
+        W("rabbit", 'zajac', 'rabbit', "The queen has got a ___."),
+        W("sofa", 'gauč', 'sofa', "The teddy is on the ___."),
+        W("umbrella", 'dáždnik', 'umbrella', "The teddy has got an ___."),
+      ]},
+    ],
+  },
+  {
+    id: 7, title: 'Lekcia 6', name: "Billy's teddy!", book: 'Unit 6',
+    groups: [
+      { id: 'rodina6', name: 'Moja rodina', words: [
+        W("sister", 'sestra', 'sister', "Mum and dad, ___ and brother.", ["@rodina", "@rodina6"]),
+        W("aunt", 'teta', 'aunt', "Who's this? It's Beth's ___.", ["@rodina", "@rodina6"]),
+        W("uncle", 'ujo / strýko', 'uncle', "Aunt and ___, and cousins too.", ["@rodina", "@rodina6"]),
+        W("cousin", 'bratranec / sesternica', 'cousin', "Aunt and uncle, and ___s too.", ["@rodina", "@rodina6"]),
+      ]},
+      { id: 'vxyz', name: 'Hlásky v, x, y, z', words: [
+        W("van", 'dodávka', 'van', "I can see a zebra in a ___.", ["box"]),
+        W("box", 'krabica', 'box', "And a yo-yo on a ___.", ["van"]),
+        W("yo-yo", 'jojo', 'yoyo', "And a ___ on a box.", ["zebra", "van"]),
+        W("zebra", 'zebra', 'zebra', "I can see a ___ in a van.", ["yo-yo", "box"]),
+      ]},
+    ],
+  },
+  {
+    id: 8, title: 'Lekcia 7', name: 'Are these his trousers?', book: 'Unit 7',
+    groups: [
+      { id: 'oblecenie', name: 'Oblečenie', words: [
+        W("dress", 'šaty', 'dress', "Help! The clothes. Look, this is Rosy's ___.", ["dress", "T-shirt", "coat", "tracksuit"]),
+        W("socks", 'ponožky', 'socks', "Are these her ___? Yes, they are.", ["socks", "trousers", "shorts", "shoes", "cardigan"]),
+        W("T-shirt", 'tričko', 'tshirt', "Is this Billy's ___? Yes, it is.", ["dress", "T-shirt", "coat", "tracksuit"]),
+        W("trousers", 'nohavice', 'trousers', "Are these his ___?", ["socks", "trousers", "shorts", "shoes", "cardigan"]),
+        W("shorts", 'šortky (krátke nohavice)', 'shorts', "No, they aren't his trousers. They're my ___!", ["socks", "trousers", "shorts", "shoes", "cardigan"]),
+      ]},
+      { id: 'oblecenie2', name: 'Topánky a kabáty', words: [
+        W("shoes", 'topánky', 'shoes', "Every day, I put on my ___.", ["socks", "trousers", "shorts", "shoes", "cardigan"]),
+        W("coat", 'kabát', 'coat', "What colour is this ___?", ["dress", "T-shirt", "coat", "tracksuit"]),
+        W("cardigan", 'sveter na zapínanie', 'cardigan', "All Max's ___s are orange.", ["socks", "trousers", "shorts", "shoes", "cardigan"]),
+        W("tracksuit", 'tepláková súprava', 'tracksuit', "Where's my ___?", ["dress", "T-shirt", "coat", "tracksuit"]),
       ]},
     ],
   },
 ];
-const SENT_SK = {"teacher": "[Učiteľka] píše na tabuľu.", "pupil": "[Žiak] sedí v škole v lavici.", "housewife": "[Žena v domácnosti] varí a upratuje doma.", "fireman": "[Hasič] hasí požiare.", "pilot": "[Pilot] riadi lietadlo.", "doctor": "Som chorý. Idem k [lekárovi].", "nurse": "[Zdravotná sestra] pomáha lekárovi v nemocnici.", "mum": "Ocko a [mama] sú moji rodičia.", "dad": "Môj [ocko] je mamin manžel.", "grandma": "Moja [babka] je mamina mama.", "grandpa": "Môj [dedko] je ockov otec.", "brother": "Môj [brat] je chlapec. Má desať rokov.", "one": "Mám [jeden] nos.", "two": "Jeden a jeden sú [dva].", "three": "Dva a jeden sú [tri].", "four": "Dva a dva sú [štyri].", "five": "Štyri a jeden je [päť].", "six": "Tri a tri je [šesť].", "seven": "Šesť a jeden je [sedem].", "eight": "Štyri a štyri je [osem].", "nine": "Osem a jeden je [deväť].", "ten": "Päť a päť je [desať].", "Sunday": "Deň po sobote je [nedeľa].", "Monday": "Deň po nedeli je [pondelok].", "Tuesday": "Deň po pondelku je [utorok].", "Wednesday": "Deň po utorku je [streda].", "Thursday": "Deň po strede je [štvrtok].", "Friday": "Deň po štvrtku je [piatok].", "Saturday": "Deň po piatku je [sobota].", "red": "Paradajka je [červená].", "yellow": "Banán je [žltý].", "pink": "Prasiatko je [ružové].", "green": "Tráva je [zelená].", "purple": "Červená a modrá dajú [fialovú].", "orange": "Mrkva je [oranžová].", "blue": "Obloha je [modrá].", "pen": "Moje [pero] má modrý atrament.", "rubber": "Ups, chyba! Potrebujem [gumu].", "pencil": "Strúham si [ceruzku].", "ruler": "Rovnú čiaru kreslím [pravítkom].", "book": "Čítam [knihu].", "bag": "Školskú [tašku] nosím na chrbte.", "folder": "Papiere si dávam do [dosiek].", "door": "Zaklop na [dvere].", "window": "Pozri sa von [oknom].", "bookcase": "[Knižnica] má poličky na knihy.", "apple": "Jem [jablko].", "bird": "[Vták] vie lietať.", "cat": "[Mačka] robí mňau.", "dog": "[Pes] robí haf.", "doll": "Moja [bábika] má dlhé vlasy a šaty.", "ball": "Kopnem do [lopty].", "teddy": "Môj [macko] je malý hnedý medvedík.", "puzzle": "Skladám kúsky svojho [puzzle].", "car": "Moje [autíčko] má štyri kolesá.", "kite": "Môj [šarkan] lieta vo vetre.", "bike": "Môj [bicykel] má dve kolesá a pedále.", "train": "[Vláčik] robí š-š-š, tú-tú!", "game": "Hrám počítačovú [hru].", "scooter": "Stojím na [kolobežke] a odrážam sa jednou nohou.", "egg": "Sliepka znesie [vajíčko].", "fig": "[Figa] je malé fialové ovocie.", "goat": "[Koza] má rohy a bradu.", "hat": "Na hlave nosím [klobúk].", "arms": "Mávam [pažami] vo vzduchu.", "nose": "[Nosom] cítim vône.", "face": "Ráno si umývam [tvár].", "legs": "Behám [nohami].", "ears": "[Ušami] počujem.", "fingers": "Mám desať [prstov].", "hands": "Tlieskam [rukami].", "eyes": "[Očami] vidím.", "eyebrows": "[Obočie] mám nad očami.", "shoulders": "Tašku nosím na [pleciach].", "ink": "V pere mám [atrament].", "jam": "Mám rád chlieb s jahodovým [džemom].", "lion": "[Lev] robí rrr."};
+const SENT_SK = {"one": "Koľko máš rokov? Mám [jeden rok].", "two": "Koľko máš rokov? Mám [dva roky].", "three": "Koľko máš rokov? Mám [tri roky].", "four": "Koľko máš rokov? Mám [štyri roky].", "five": "Koľko máš rokov? Mám [päť rokov].", "six": "Koľko máš rokov? Mám [šesť rokov].", "seven": "Koľko máš rokov? Mám [sedem rokov].", "eight": "Koľko máš rokov? Mám [osem rokov].", "nine": "Koľko máš rokov? Mám [deväť rokov].", "ten": "Koľko máš rokov? Mám [desať rokov].", "Sunday": "[Nedeľa], pondelok, utorok.", "Monday": "Nedeľa, [pondelok], utorok.", "Tuesday": "Pondelok, [utorok], streda.", "Wednesday": "Utorok, [streda], štvrtok.", "Thursday": "Streda, [štvrtok], piatok.", "Friday": "Štvrtok, [piatok], sobota.", "Saturday": "Štvrtok, piatok, [sobota].", "red": "[Červená] a žltá, a ružová a zelená.", "yellow": "Červená a [žltá], a ružová a zelená.", "pink": "Červená a žltá, a [ružová] a zelená.", "green": "Červená a žltá, a ružová a [zelená].", "purple": "[Fialová] a oranžová, a modrá.", "orange": "Fialová a [oranžová], a modrá.", "blue": "Fialová a oranžová, a [modrá].", "pen": "Pozri, čo je to? Je to [pero].", "rubber": "A čo je toto? Je to [guma].", "pencil": "A toto je moja [ceruzka].", "ruler": "Čo je to? Je to [pravítko].", "book": "Otvor [knihu]!", "bag": "Toto je moja školská [taška].", "folder": "Toto sú modré [dosky].", "door": "Zatvor [dvere].", "window": "Pozri sa von [oknom].", "bookcase": "Čo je to? Je to [knižnica].", "apple": "Pes má rád [jablká].", "bird": "Mačka má rada [vtáky].", "cat": "Tu je [mačka] s vtákom.", "dog": "Tu je [pes] s jablkom.", "doll": "Toto je tvoja [bábika]. A toto je tvoja lopta.", "ball": "Toto je tvoja bábika. A toto je tvoja [lopta].", "teddy": "Je toto tvoj [macko]?", "puzzle": "Je to [puzzle]? Áno, je.", "car": "Toto je moje [autíčko].", "kite": "Toto je môj veľký červený [šarkan].", "bike": "Toto je môj veľký modrý [bicykel].", "train": "Toto je môj veľký zelený [vláčik].", "game": "Je to moja [hra].", "scooter": "Je to moja [kolobežka]?", "egg": "Je tam [vajíčko] so žltým klobúkom.", "fig": "Koza má [figu].", "goat": "Pozri, [koza] má rada figy.", "hat": "Je tam vajíčko so žltým [klobúkom].", "arms": "Najprv moje [paže].", "nose": "Teraz môj [nos].", "face": "Natri si to na [tvár] a na nohy.", "legs": "Natri si to na tvár a na [nohy].", "ears": "Toto sú moje [uši].", "fingers": "Desať [prstov] na mojich rukách.", "hands": "Desať prstov na mojich [rukách].", "eyes": "Dve [oči], jeden nos, všetko na mojej tvári.", "eyebrows": "Má čierne [obočie].", "shoulders": "Ukáž na svoje [plecia].", "ink": "Lev má [atrament].", "jam": "Lev má [džem].", "lion": "Ups! [Lev] je celý zamazaný.", "teacher": "Pozri! Je Billy [učiteľ]? Áno, je.", "pupil": "A Tim je [žiak].", "housewife": "Nie, nie je. Je [žena v domácnosti].", "fireman": "Pozri sa na dedka. Je [hasič]?", "pilot": "Je ocko [pilot]?", "doctor": "Toto je môj dedko. Je [lekár].", "nurse": "Moja mama je [zdravotná sestra].", "mum": "Toto je moja [mama]. Je zdravotná sestra.", "dad": "Toto je môj [ocko]. Je hasič.", "grandma": "Je [babka] učiteľka?", "grandpa": "Pozri sa na [dedka]. Je hasič?", "brother": "Toto som ja s mojím [bratom]. Volá sa Joe.", "seesaw": "Kde je lopta? Je pod [hojdačkou na váhu]?", "slide": "Pozri! Lopta je na [šmykľavke].", "swing": "Môžem ísť na [hojdačku], prosím?", "climbing frame": "Som na [preliezačke]!", "net": "A teraz je v [sieti]!", "tree": "Je pod [stromom].", "pool": "Hraj sa v [bazéne].", "armbands": "Pozri sa na [rukávniky].", "ice cream": "Zjedz [zmrzlinu], je fajn a chladivá.", "frisbee": "Hraj sa s [frisbee].", "in": "A teraz je [v] sieti!", "on": "Pozri! Lopta je [na] šmykľavke.", "under": "Kde je lopta? Je [pod] stromom.", "queen": "[Kráľovná] je na gauči.", "rabbit": "Kráľovná má [zajaca].", "sofa": "Macko je na [gauči].", "umbrella": "Macko má [dáždnik].", "sister": "Mama a ocko, [sestra] a brat.", "aunt": "Kto je to? To je Bethina [teta].", "uncle": "Teta a [ujo], a aj bratranci.", "cousin": "Teta a ujo, a aj [bratranci].", "van": "Vidím zebru v [dodávke].", "box": "A jojo na [krabici].", "yo-yo": "A [jojo] na krabici.", "zebra": "Vidím [zebru] v dodávke.", "dress": "Pomoc! Oblečenie. Pozri, toto sú Rosyine [šaty].", "T-shirt": "Je toto Billyho [tričko]? Áno, je.", "coat": "Akú farbu má tento [kabát]?", "tracksuit": "Kde je moja [tepláková súprava]?", "socks": "Sú toto jej [ponožky]? Áno, sú.", "trousers": "Sú toto jeho [nohavice]?", "shorts": "Nie, to nie sú jeho nohavice. Sú to moje [šortky]!", "shoes": "Každý deň si obujem [topánky].", "cardigan": "Všetky Maxove [svetre] sú oranžové."};
 LESSONS.forEach(l => l.groups.forEach(g => g.words.forEach(w => { w.group = g.id; w.lesson = l.id; w.sentSkGap = (SENT_SK[w.en] || '').replace(/\[[^\]]*\]/, '_____'); w.sentSk = (SENT_SK[w.en] || '').replace(/\[([^\]]*)\]/, '$1'); })));
 const lessonWords = (l) => l.groups.flatMap(g => g.words);
 const lessonById = (id) => LESSONS.find(l => l.id === id);
@@ -673,7 +783,8 @@ const shuffle = (arr, r = rand) => { const a = arr.slice(); for (let i = a.lengt
 const norm = (s) => s.trim().toLowerCase().replace(/\s+/g, ' ');
 const sentHTML = (w, fill) => esc(w.sent).replace(/___(\S*)/, (m, tail) => `<span style="white-space:nowrap">${fill}${tail}</span>`);
 function others(w, pool, n, r = rand) {
-  const ok = pool.filter(o => o !== w && !w.avoid.includes(o.en) && !o.avoid.includes(w.en));
+  const clash = (a, b) => a.avoid.includes(b.en) || a.avoid.includes('@' + b.group) || a.sent === b.sent;
+  const ok = pool.filter(o => o !== w && !clash(w, o) && !clash(o, w));
   const same = shuffle(ok.filter(o => o.group === w.group), r);
   const rest = shuffle(ok.filter(o => o.group !== w.group), r);
   return same.concat(rest).slice(0, n);
@@ -1600,7 +1711,7 @@ const RENDER = {
   },
   sentence(q, { word: w }, done) {
     const opts = shuffle([w, ...others(w, poolAll(), 3)]);
-    q.innerHTML = `<p class="prompt">Doplň slovo do vety:</p><p class="sentence">${sentHTML(w, '<span class="blank">&nbsp;</span>')}</p>${w.sentSk ? helpHTML(w.sentSkGap) : ''}
+    q.innerHTML = `${picHTML(w.pic)}<p class="prompt">Doplň slovo do vety:</p><p class="sentence">${sentHTML(w, '<span class="blank">&nbsp;</span>')}</p>${w.sentSk ? helpHTML(w.sentSkGap) : ''}
       <div class="options">${opts.map((o, i) => `<button class="opt" data-i="${i}">${esc(o.en)}</button>`).join('')}</div>`;
     choice(q, opts, w, done, () => { q.querySelector('.blank').textContent = w.en; });
   },
